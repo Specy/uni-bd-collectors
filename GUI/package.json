@@ -1,0 +1,59 @@
+{
+  "name": "scapix",
+  "version": "2.0.0",
+  "description": "An app to upscale images and videos using waifu2x and real-esrgan",
+  "main": "electron/dist/main.js",
+  "build": {
+    "appId": "com.specy.scapix",
+    "icon": "./electron/static/icons/512x512.png"
+  },
+  "scripts": {
+    "installDeps": "npm i && cd client && npm i",
+    "build": "tsc && cd client && npm run build && cd .. && electron-forge make",
+    "build:debug": "set DEBUG=electron-forge:* && npm run build",
+    "electron": "concurrently \"npm run start:electron\" \"npm run start:client\"",
+    "start": "electron-forge start",
+    "dev:electron": "tsc && electron .",
+    "dev:client": "cd client && npm run dev",
+    "start:electron": "electron .",
+    "start:client": "cd client && npm run preview",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "ci": "npm run installDeps && npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Specy/Scapix.git"
+  },
+  "author": "specy",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Specy/Scapix/issues"
+  },
+  "config": {
+    "forge": "./forge.config.js"
+  },
+  "homepage": "https://github.com/Specy/Scapix#readme",
+  "dependencies": {
+    "@types/semver": "^7.5.0",
+    "electron-log": "^4.4.8",
+    "electron-serve": "^1.1.0",
+    "electron-squirrel-startup": "^1.0.0",
+    "mysql2": "^3.5.1",
+    "semver": "^7.5.4",
+    "undici": "^5.22.1"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^6.2.1",
+    "@electron-forge/maker-deb": "^6.2.1",
+    "@electron-forge/maker-dmg": "^6.2.1",
+    "@electron-forge/maker-rpm": "^6.2.1",
+    "@electron-forge/maker-squirrel": "^6.2.1",
+    "@electron-forge/maker-wix": "^6.2.1",
+    "@electron-forge/maker-zip": "^6.2.1",
+    "concurrently": "^8.2.0",
+    "electron": "^25.3.0",
+    "electron-reloader": "^1.2.3",
+    "typescript": "^5.1.6"
+  }
+}
