@@ -150,7 +150,57 @@ END$
 
 
 -- FN 8
--- TODO
+/*
+    Searches for a disc given a title and artist name, both of which are optional.
+    the search is of a specific collector, then it can be specified to:
+        search in the collector's collections or
+        search in the collector's shared collections
+        search in public collections
+*/
+CREATE PROCEDURE search_discs(
+    IN search_disc_title VARCHAR(100),
+    IN search_artist_stage_name VARCHAR(100),
+    IN collector_id INT,
+    IN search_in_owned_collections BOOLEAN,
+    IN search_in_shared_collections BOOLEAN,
+    IN search_in_public_collections BOOLEAN
+)
+BEGIN 
+    DECLARE artist_id INT;
+    SET artist_id = (
+        SELECT a.id
+        FROM artist a
+        WHERE a.stage_name LIKE artist_stage_name
+    );
+
+    SELECT 
+        d.id AS disc_id,
+        d.title AS disc_title,
+        d.barcode AS disc_barcode,
+        d.release_year AS disc_release_year,
+        d.number_of_copies AS disc_number_of_copies,
+        d.genre AS disc_genre,
+        d.disc_format AS disc_format,
+        d.disc_status AS disc_status,
+        a.stage_name AS artist_stage_name,
+        l.label_name AS label_name
+    FROM disc d
+    JOIN artist a ON d.artist_id = a.id
+    JOIN label l ON d.label_id = l.id
+    JOIN collection c ON d.collection_id = c.id
+    LEFT JOIN shared_collection sc ON d.collection_id = sc.collection_id AND sc.collector_id = collector_id
+    WHERE
+        (d.title = COALESCE(search_disc_title, d.title)) AND 
+        (d.artist_id = COALESCE(artist_id, d.artist_id)) AND 
+        (
+            (search_in_owned_collections AND c.collector_id = collector_id) OR
+            (search_in_shared_collections AND sc.collector_id = collector_id) OR
+            (search_in_public_collections AND c.is_public = TRUE)
+        );
+END $
+
+
+
 -- FN 9
 CREATE PROCEDURE is_collection_visible_by_collector(
     IN collection_id INT,
