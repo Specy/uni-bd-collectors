@@ -35,7 +35,7 @@ Il compito del progetto è quello di permettere a **Collezionisti** di tenere tr
 - Collezione: Una lista di dischi appartenenti a questa collezione, incluso il nome della collezione e se è pubblica o meno. La collezione può essere condivisa con altri collezionisti.
 - Disco: Contiene i dettagli del disco come il nome, gli autori, il titolo, l'anno di uscita, l'etichetta, il genere, lo stato di conservazione, il formato, il barcode se disponibile (univoco), una lista di tracce, e delle immagini
 - Immagine: L'immagine del disco e la tipologia di immagine (se disponibile)
-- Traccia: Una canzone, contiene un titolo, durata, e opzionalmente informazioni su compositore ed esecutore, se differissero da quelle del disco
+- Traccia: Una canzone, contiene un titolo, durata, e opzionalmente informazioni sul contributo da parte di artisti.
 - Artista: L'artista che produce una canzone, con il proprio nome d'arte
 
 # Implementazioni analizzate
@@ -89,7 +89,7 @@ Tutti gli attributi sono NOT NULL ad eccezione di "barcode" che può esserlo in 
 
 ### Implementazione del modello relazionale
 
-```mysql
+```sql
 DROP TABLE IF EXISTS track_contribution;
 DROP TABLE IF EXISTS track;
 DROP TABLE IF EXISTS disc;
@@ -220,7 +220,7 @@ CREATE TABLE IF NOT EXISTS track_contribution(
 
 Script per aggiunta di dati al database:
 
-```mysql
+```sql
 SET FOREIGN_KEY_CHECKS = 0;
 TRUNCATE TABLE track_contribution;
 TRUNCATE TABLE track;
@@ -366,7 +366,7 @@ INSERT INTO track_contribution (track_id, artist_id, contribution_type) VALUES
 
 ### Implementazione dei vincoli
 
-```mysql
+```sql
 DROP TRIGGER IF EXISTS check_collection_uniqueness;
 DROP TRIGGER IF EXISTS check_collection_share;
 DELIMITER $
@@ -413,7 +413,7 @@ DELIMITER ;
 
 Script per eliminare tutte le procedure:
 
-```mysql
+```sql
 DROP PROCEDURE IF EXISTS create_collection;
 DROP PROCEDURE IF EXISTS create_disc;
 DROP PROCEDURE IF EXISTS create_track;
@@ -436,7 +436,7 @@ DROP FUNCTION IF EXISTS count_total_track_time_of_artist_in_public_collections;
 
 >Inserimento di una nuova collezione.
 
-```mysql
+```sql
 CREATE PROCEDURE create_collection(
 	IN collection_name VARCHAR(100),
     IN collector_id INT,
@@ -453,7 +453,7 @@ END$
 
 > Aggiunta di dischi a una collezione e di tracce a un disco.
 
-```mysql
+```sql
 CREATE PROCEDURE create_disc(
 	IN title VARCHAR(100),
     IN barcode VARCHAR(50),
@@ -486,32 +486,37 @@ END$
 
 > Modifica dello stato di pubblicazione di una collezione (da privata a pubblica e viceversa) e aggiunta di nuove condivisioni a una collezione.
 
-```mysql
-CREATE PROCEDURE create_disc(
-	IN title VARCHAR(100),
-    IN barcode VARCHAR(50),
-    IN release_year INT,
-    IN number_of_copies INT,
-    IN genre VARCHAR(40),
-    IN disc_format VARCHAR(40),
-    IN label_id INT,
+```sql
+CREATE PROCEDURE set_collection_visibility(
     IN collection_id INT,
-    IN disc_status VARCHAR(40),
-    IN artist_id INT
-)
-BEGIN 
-    INSERT INTO disc(title, barcode, release_year, number_of_copies, genre, disc_format, label_id, collection_id, disc_status, artist_id)
-    VALUES (title, barcode, release_year, number_of_copies, genre, disc_format, label_id, collection_id, disc_status, artist_id);
-END$
-
-CREATE PROCEDURE create_track(
-    IN track_length INT,
-    IN title VARCHAR(100),
-    IN disc_id INT
+    IN is_public BOOLEAN
 )
 BEGIN
-    INSERT INTO track(track_length, title, disc_id)
-    VALUES (track_length, title, disc_id);
+    UPDATE collection c
+    SET c.is_public = is_public
+    WHERE c.id = collection_id;
+END$
+
+CREATE PROCEDURE add_contributor_to_collection(
+    IN collection_id INT,
+    IN collector_username VARCHAR(100)
+)
+BEGIN
+	DECLARE collector_id INT;
+	DECLARE error_message VARCHAR(200);
+    SET collector_id = (
+        SELECT c.id
+        FROM collector c
+        WHERE c.username = collector_username
+    );
+
+    IF (collector_id IS NULL) THEN
+        SET error_message = CONCAT("Collector: ", collector_username, " does not exist");
+        SIGNAL SQLSTATE "45000" SET MESSAGE_TEXT = error_message;
+    END IF;
+
+    INSERT INTO shared_collection(collection_id, collector_id)
+    VALUES (collection_id, collector_id);
 END$
 ```
 
@@ -519,7 +524,7 @@ END$
 
 > Rimozione di un disco da una collezione.
 
-```mysql
+```sql
 CREATE PROCEDURE remove_disc_from_collection(
     IN disc_id INT
 )
@@ -533,7 +538,7 @@ END$
 
 > Rimozione di una collezione
 
-```mysql
+```sql
 CREATE PROCEDURE remove_collection(
     IN collection_id INT
 )  
@@ -547,7 +552,7 @@ END$
 
 > Lista di tutti i dischi in una collezione
 
-```mysql
+```sql
 CREATE PROCEDURE get_discs_of_collection(
     IN collection_id INT
 )
@@ -574,7 +579,7 @@ END$
 
 > Track list di un disco
 
-```mysql
+```sql
 CREATE PROCEDURE get_disc_tracks(
     IN disc_id INT
 )
@@ -592,7 +597,7 @@ END$
 
 > Ricerca di dischi in base a nomi di autori/compositori/interpreti e/o titoli. Si potrà decidere di includere nella ricerca le collezioni di un certo collezionista e/o quelle condivise con lo stesso collezionista e/o quelle pubbliche. _(Suggerimento: potete realizzare diverse query in base alle varie combinazioni di criteri di ricerca. Usate la UNION per unire i risultati delle ricerche effettuate sulle collezioni private, condivise e pubbliche)_
 
-```mysql
+```sql
 CREATE PROCEDURE search_discs(
     IN search_disc_title VARCHAR(100),
     IN search_artist_stage_name VARCHAR(100),
@@ -640,7 +645,7 @@ END $
 
 > Verifica della visibilità di una collezione da parte di un collezionista. _(Suggerimento: una collezione è visibile a un collezionista se è sua, condivisa con lui o pubblica)_
 
-```mysql
+```sql
 CREATE PROCEDURE is_collection_visible_by_collector(
     IN collection_id INT,
     IN collector_id INT
@@ -667,7 +672,7 @@ END$
 
 > Numero dei brani (tracce di dischi) distinti di un certo autore (compositore, musicista) presenti nelle collezioni pubbliche.
 
-```mysql
+```sql
 CREATE FUNCTION get_artist_id(
     artist_stage_name VARCHAR(100)
 )
@@ -717,7 +722,7 @@ END$
 
 > Minuti totali di musica riferibili a un certo autore (compositore, musicista) memorizzati nelle collezioni pubbliche
 
-```mysql
+```sql
 CREATE FUNCTION count_total_track_time_of_artist_in_public_collections(
     artist_stage_name VARCHAR(100)
 )
@@ -752,7 +757,7 @@ END $
 
 > Statistiche (_una query per ciascun valore_): numero di collezioni di ciascun collezionista, numero di dischi per genere nel sistema
 
-```mysql
+```sql
 CREATE PROCEDURE aggregate_number_of_collections_per_collector()
 BEGIN
     SELECT
@@ -778,7 +783,7 @@ END$
 
 > Dati un numero di barcode, un titolo e il nome di un autore, individuare tutti i dischi presenti nelle collezioni che sono più coerenti con questi dati (funzionalità utile, ad esempio, per individuare un disco già presente nel sistema prima di inserirne un doppione). L'idea è che il barcode è univoco, quindi i dischi con lo stesso barcode sono senz'altro molto coerenti, dopodichè è possibile cercare dischi con titolo simile e/o con l'autore dato, assegnando maggior punteggio di somiglianza a quelli che hanno più corrispondenze.
 
-```mysql
+```sql
 CREATE PROCEDURE find_best_match_of_disc_from(
     IN barcode VARCHAR(50),
     IN title VARCHAR(100),
