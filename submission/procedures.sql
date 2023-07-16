@@ -74,6 +74,8 @@ CREATE PROCEDURE add_contributor_to_collection(
     IN collector_username VARCHAR(100)
 )
 BEGIN
+	DECLARE collector_id INT;
+	DECLARE error_message VARCHAR(200);
     SET collector_id = (
         SELECT c.id
         FROM collector c
@@ -81,6 +83,7 @@ BEGIN
     );
 
     IF (collector_id IS NULL) THEN
+
         SET error_message = CONCAT("Collector: ", collector_username, " does not exist");
         SIGNAL SQLSTATE "45000" SET MESSAGE_TEXT = error_message;
     END IF;
@@ -194,6 +197,7 @@ RETURNS INT DETERMINISTIC
 BEGIN
     DECLARE artist_id INT;
     DECLARE number_of_tracks INT;
+	DECLARE error_message VARCHAR(200);
     SET artist_id = get_artist_id(artist_stage_name);
     IF (artist_id IS NULL) THEN
         SET error_message = CONCAT("Artist: ", artist_stage_name, " does not exist");
@@ -223,6 +227,7 @@ RETURNS INT DETERMINISTIC
 BEGIN
     DECLARE artist_id INT;
     DECLARE total_track_time INT;
+	DECLARE error_message VARCHAR(200);
     SET artist_id = get_artist_id(artist_stage_name);
     IF (artist_id IS NULL) THEN
         SET error_message = CONCAT("Artist: ", artist_stage_name, " does not exist");
