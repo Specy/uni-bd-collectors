@@ -126,9 +126,9 @@ BEGIN
         a.stage_name AS artist_stage_name,
         l.label_name AS label_name
     FROM disc d
-    WHERE d.collection_id = collection_id
     JOIN artist a ON d.artist_id = a.id
     JOIN label l ON d.label_id = l.id
+	WHERE d.collection_id = collection_id;
 END$
 
 
@@ -140,17 +140,17 @@ BEGIN
     SELECT
         t.id AS track_id,
         t.track_length AS track_length,
-        t.title AS track_title,
+        t.title AS track_title
     FROM track t
-    WHERE t.disc_id = disc_id
+    WHERE t.disc_id = disc_id;
 END$
 
 
 -- FN 8
-//TODO
+-- TODO
 -- FN 9
 CREATE PROCEDURE is_collection_visible_by_collector(
-    IN collection_id INT
+    IN collection_id INT,
     IN collector_id INT
 )
 BEGIN
@@ -167,7 +167,7 @@ BEGIN
             THEN TRUE
             ELSE FALSE 
         END AS is_visible 
-    FROM collection c, 
+    FROM collection c;
 END$
 
 -- FN 10
@@ -207,7 +207,7 @@ BEGIN
         JOIN disc d ON t.disc_id = d.id
         JOIN collection c ON d.collection_id = c.id
         WHERE c.is_public = TRUE AND tc.artist_id = artist_id
-    )
+    );
     IF (number_of_tracks IS NULL) THEN
         RETURN 0;
     ELSE 
@@ -216,7 +216,7 @@ BEGIN
 END$
 
 -- FN 11
-DECLARE FUNCTION count_total_track_time_of_artist_in_public_collections(
+CREATE FUNCTION count_total_track_time_of_artist_in_public_collections(
     artist_stage_name VARCHAR(100)
 )
 RETURNS INT DETERMINISTIC
@@ -236,7 +236,7 @@ BEGIN
         JOIN disc d ON t.disc_id = d.id
         JOIN collection c ON d.collection_id = c.id
         WHERE c.is_public = TRUE AND tc.artist_id = artist_id
-    )
+    );
     IF (total_track_time IS NULL) THEN
         RETURN 0;
     ELSE 
@@ -253,7 +253,7 @@ BEGIN
         COUNT(c.id) AS number_of_collections
     FROM collection c
     RIGHT JOIN collector ON collector.id = c.collector_id
-    GROUP BY collector.username
+    GROUP BY collector.username;
 END$
 
 CREATE PROCEDURE aggregate_number_of_discs_per_genre()
@@ -263,14 +263,14 @@ BEGIN
         COUNT(d.id) AS number_of_discs
     FROM disc d
     RIGHT JOIN genre g ON g.genre_name = d.genre
-    GROUP BY d.genre
+    GROUP BY d.genre;
 END$
 
 -- FN 13
 CREATE PROCEDURE find_best_match_of_disc_from(
     IN barcode VARCHAR(50),
     IN title VARCHAR(100),
-    IN artist_stage_name VARCHAR(100),
+    IN artist_stage_name VARCHAR(100)
 )
 BEGIN
     SELECT
@@ -293,7 +293,7 @@ BEGIN
         WHEN d.title = title AND a.stage_name = artist_stage_name THEN 2
         ELSE 3
     END, barcode ASC
-    LIMIT 50
+    LIMIT 50;
 END$
 
 DELIMITER ;
