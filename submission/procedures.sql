@@ -173,7 +173,7 @@ BEGIN
         WHERE a.stage_name LIKE artist_stage_name
     );
 
-    SELECT 
+    SELECT DISTINCT
         d.id AS disc_id,
         d.title AS disc_title,
         d.barcode AS disc_barcode,

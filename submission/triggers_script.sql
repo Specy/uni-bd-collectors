@@ -1,5 +1,5 @@
 DROP TRIGGER IF EXISTS check_collection_uniqueness;
-
+DROP TRIGGER IF EXISTS check_collection_share;
 DELIMITER $
 
 CREATE TRIGGER check_collection_uniqueness BEFORE INSERT ON collection FOR EACH ROW
