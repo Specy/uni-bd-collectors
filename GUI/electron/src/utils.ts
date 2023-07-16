@@ -10,6 +10,7 @@ export const PATHS = {
     electronDist: path.join(ROOT_PATH, "/electron/dist"),
     electronClient: path.join(ROOT_PATH, "/electron/dist/client"),
     electronStatic: path.join(ROOT_PATH, "/electron/static"),
+    sqlScripts: path.join(ROOT_PATH, "/electron/src/db/sql-scripts"),
 }
 
 

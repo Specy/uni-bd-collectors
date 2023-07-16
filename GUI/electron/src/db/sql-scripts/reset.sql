@@ -1,0 +1,12 @@
+DROP TABLE IF EXISTS track_contribution;
+DROP TABLE IF EXISTS track;
+DROP TABLE IF EXISTS disc;
+DROP TABLE IF EXISTS shared_collection;
+DROP TABLE IF EXISTS collection;
+DROP TABLE IF EXISTS artist;
+DROP TABLE IF EXISTS label;
+DROP TABLE IF EXISTS collector;
+DROP TABLE IF EXISTS image;
+DROP TABLE IF EXISTS disc_genre;
+DROP TABLE IF EXISTS disc_format;
+DROP TABLE IF EXISTS condition_status;
