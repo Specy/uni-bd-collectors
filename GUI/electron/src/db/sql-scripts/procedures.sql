@@ -1,4 +1,3 @@
--- Procedures
 DROP PROCEDURE IF EXISTS create_collection;
 DROP PROCEDURE IF EXISTS create_disc;
 DROP PROCEDURE IF EXISTS create_track;
@@ -8,16 +7,17 @@ DROP PROCEDURE IF EXISTS remove_disc_from_collection;
 DROP PROCEDURE IF EXISTS remove_collection;
 DROP PROCEDURE IF EXISTS get_discs_of_collection;
 DROP PROCEDURE IF EXISTS get_disc_tracks;
-DROP PROCEDURE IF EXISTS is_collection_visible_by_collector;
 DROP PROCEDURE IF EXISTS aggregate_number_of_collections_per_collector;
 DROP PROCEDURE IF EXISTS aggregate_number_of_discs_per_genre;
 DROP PROCEDURE IF EXISTS find_best_match_of_disc_from;
+DROP PROCEDURE IF EXISTS search_discs;
 DROP FUNCTION IF EXISTS get_artist_id;
 DROP FUNCTION IF EXISTS count_tracks_of_author_in_public_collections;
 DROP FUNCTION IF EXISTS count_total_track_time_of_artist_in_public_collections;
-DELIMITER $
+DROP FUNCTION IF EXISTS is_collection_visible_by_collector;
 
--- FN 1
+DELIMITER $
+-- FN 1 
 CREATE PROCEDURE create_collection(
 	IN collection_name VARCHAR(100),
     IN collector_id INT,
@@ -57,7 +57,7 @@ BEGIN
     VALUES (track_length, title, disc_id);
 END$
 
--- FN 3
+-- FN 3 
 
 CREATE PROCEDURE set_collection_visibility(
     IN collection_id INT,
@@ -83,7 +83,6 @@ BEGIN
     );
 
     IF (collector_id IS NULL) THEN
-
         SET error_message = CONCAT("Collector: ", collector_username, " does not exist");
         SIGNAL SQLSTATE "45000" SET MESSAGE_TEXT = error_message;
     END IF;
@@ -93,7 +92,7 @@ BEGIN
 
 END$
 
--- FN 4
+-- FN 4 
 
 CREATE PROCEDURE remove_disc_from_collection(
     IN disc_id INT
@@ -103,7 +102,8 @@ BEGIN
     WHERE d.id = disc_id;
 END$
 
--- FN 5
+-- FN 5 
+
 CREATE PROCEDURE remove_collection(
     IN collection_id INT
 )  
@@ -112,7 +112,7 @@ BEGIN
     WHERE c.id = collection_id;
 END$
 
--- FN 6
+-- FN 6 
 CREATE PROCEDURE get_discs_of_collection(
     IN collection_id INT
 )
@@ -135,7 +135,7 @@ BEGIN
 END$
 
 
--- FN 7
+-- FN 7 
 CREATE PROCEDURE get_disc_tracks(
     IN disc_id INT
 )
@@ -149,14 +149,7 @@ BEGIN
 END$
 
 
--- FN 8
-/*
-    Searches for a disc given a title and artist name, both of which are optional.
-    the search is of a specific collector, then it can be specified to:
-        search in the collector's collections or
-        search in the collector's shared collections
-        search in public collections
-*/
+-- FN 8 
 CREATE PROCEDURE search_discs(
     IN search_disc_title VARCHAR(100),
     IN search_artist_stage_name VARCHAR(100),
@@ -170,7 +163,7 @@ BEGIN
     SET artist_id = (
         SELECT a.id
         FROM artist a
-        WHERE a.stage_name LIKE artist_stage_name
+        WHERE a.stage_name LIKE search_artist_stage_name
     );
 
     SELECT DISTINCT
@@ -197,17 +190,19 @@ BEGIN
             (search_in_shared_collections AND sc.collector_id = collector_id) OR
             (search_in_public_collections AND c.is_public = TRUE)
         );
-END $
+END$
 
 
 
--- FN 9
-CREATE PROCEDURE is_collection_visible_by_collector(
-    IN collection_id INT,
-    IN collector_id INT
-)
+-- FN 9 
+CREATE FUNCTION is_collection_visible_by_collector(
+    collection_id INT,
+    collector_id INT
+) 
+RETURNS BOOLEAN DETERMINISTIC
 BEGIN
-    SELECT
+    DECLARE is_visible BOOLEAN;
+    SET is_visible = (SELECT
         CASE 
             WHEN 
                 c.is_public OR 
@@ -219,12 +214,17 @@ BEGIN
                 )
             THEN TRUE
             ELSE FALSE 
-        END AS is_visible 
-    FROM collection c;
+        END
+    FROM collection c
+    WHERE c.id = collection_id);
+    IF (is_visible IS NULL) THEN
+        RETURN FALSE;
+    ELSE 
+        RETURN is_visible;
+    END IF;
 END$
 
--- FN 10
-
+-- FN 10 
 CREATE FUNCTION get_artist_id(
     artist_stage_name VARCHAR(100)
 )
@@ -269,7 +269,7 @@ BEGIN
     END IF;        
 END$
 
--- FN 11
+-- FN 11 
 CREATE FUNCTION count_total_track_time_of_artist_in_public_collections(
     artist_stage_name VARCHAR(100)
 )
@@ -285,21 +285,24 @@ BEGIN
     END IF;
 
     SET total_track_time = (
-        SELECT SUM(t.track_length)
-        FROM track t
-        JOIN track_contribution tc ON t.id = tc.track_id
-        JOIN disc d ON t.disc_id = d.id
-        JOIN collection c ON d.collection_id = c.id
-        WHERE c.is_public = TRUE AND tc.artist_id = artist_id
+        SELECT SUM(track_length)
+        FROM (
+            SELECT DISTINCT t.id, t.track_length
+            FROM track t
+            JOIN track_contribution tc ON t.id = tc.track_id
+            JOIN disc d ON t.disc_id = d.id
+            JOIN collection c ON d.collection_id = c.id
+            WHERE c.is_public = TRUE AND tc.artist_id = artist_id
+        ) AS unique_tracks
     );
     IF (total_track_time IS NULL) THEN
         RETURN 0;
     ELSE 
         RETURN total_track_time;
     END IF;
-END $
+END$
 
--- FN 12
+-- FN 12 
 
 CREATE PROCEDURE aggregate_number_of_collections_per_collector()
 BEGIN
@@ -314,14 +317,14 @@ END$
 CREATE PROCEDURE aggregate_number_of_discs_per_genre()
 BEGIN
     SELECT
-        g.genre AS genre,
+        g.genre_name AS genre,
         COUNT(d.id) AS number_of_discs
     FROM disc d
-    RIGHT JOIN genre g ON g.genre_name = d.genre
-    GROUP BY d.genre;
+    RIGHT JOIN disc_genre g ON g.genre_name = d.genre
+    GROUP BY g.genre_name;
 END$
 
--- FN 13
+-- FN 13 
 CREATE PROCEDURE find_best_match_of_disc_from(
     IN barcode VARCHAR(50),
     IN title VARCHAR(100),
@@ -342,12 +345,13 @@ BEGIN
     FROM disc d
     JOIN artist a ON d.artist_id = a.id
     JOIN label l ON d.label_id = l.id
-    WHERE d.barcode = COALESCE(barcode, d.barcode) OR d.title = title
+    WHERE d.barcode = barcode OR d.title = title
     ORDER BY CASE 
         WHEN d.barcode = barcode THEN 1
-        WHEN d.title = title AND a.stage_name = artist_stage_name THEN 2
-        ELSE 3
-    END, barcode ASC
+        WHEN d.title = title AND a.stage_name != artist_stage_name THEN 2
+        WHEN d.title = title AND a.stage_name = artist_stage_name THEN 3
+        ELSE 4
+    END
     LIMIT 50;
 END$
 

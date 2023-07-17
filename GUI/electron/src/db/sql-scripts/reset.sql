@@ -10,3 +10,5 @@ DROP TABLE IF EXISTS image;
 DROP TABLE IF EXISTS disc_genre;
 DROP TABLE IF EXISTS disc_format;
 DROP TABLE IF EXISTS condition_status;
+DROP TABLE IF EXISTS artist_role;
+DROP TABLE IF EXISTS image_type;

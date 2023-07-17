@@ -1,7 +1,8 @@
-import { Connection } from "mysql2/promise";
+import { Connection, ConnectionOptions } from "mysql2/promise";
 import path from "path";
 import fs from "fs/promises";
-import { PATHS } from "utils";
+import { PATHS } from "../utils";
+import { DEFAULT_CONNECTION, createDatabase } from "./db";
 //db.execute is a prepared statement
 export class CollectorsDb{
     private db: Connection;
@@ -11,16 +12,29 @@ export class CollectorsDb{
         this.db = db;
     }
 
-    async init(includeMock?: boolean, reset?: boolean): Promise<void>{
+    private static async ensureDatabaseExists(database: string, config: ConnectionOptions = DEFAULT_CONNECTION){
+        delete config.database
+        const db = await createDatabase(config)
+        await db.execute(`CREATE DATABASE IF NOT EXISTS ${database}`)
+        await db.end()   
+    }
+    static async new(database: string, config: ConnectionOptions = DEFAULT_CONNECTION){
+        await CollectorsDb.ensureDatabaseExists(database, config)
+        config = {...config, database, multipleStatements: true}
+        const db =  new CollectorsDb(await createDatabase(config))
+        await db.init()
+        return db
+    }
+    async init(includeMock: boolean = true, reset: boolean = true): Promise<void>{
         if(this.initPromise) return this.initPromise
         if(this.isInitialized) return Promise.resolve()
         this.initPromise = new Promise(async (resolve, reject) => {
             try{
                 const [
                     databaseCreation,
-                    triggersCreation,
                     mockDataCreation,
                     proceduresCreation,
+                    triggersCreation,
                     resetScript
                 ] = await Promise.all([
                     fs.readFile(path.join(PATHS.sqlScripts, 'database_creation_script.sql'), "utf-8"),
@@ -29,11 +43,11 @@ export class CollectorsDb{
                     fs.readFile(path.join(PATHS.sqlScripts, 'triggers_script.sql'), "utf-8"),
                     fs.readFile(path.join(PATHS.sqlScripts, 'reset.sql'), "utf-8"),
                 ])
-                await this.db.execute(databaseCreation)
-                await this.db.execute(triggersCreation)
-                if(includeMock) await this.db.execute(mockDataCreation)
-                await this.db.execute(proceduresCreation)
-                if(reset) await this.db.execute(resetScript)
+                if(reset) await this.db.query(resetScript)
+                await this.db.query(databaseCreation)
+                await this.db.query(removeDelimiter(triggersCreation))
+                await this.db.query(removeDelimiter(proceduresCreation))
+                if(includeMock) await this.db.query(mockDataCreation)
                 this.isInitialized = true
                 this.initPromise = null
                 resolve()
@@ -43,8 +57,14 @@ export class CollectorsDb{
         })
         return this.initPromise
     }   
-
-    async raw(...props: Parameters<Connection['execute']>): Promise<ReturnType<Connection['execute']>>{
-        return this.db.execute(...props)
+    async test(){
+        const [rows] = await this.db.execute("CALL find_best_match_of_disc_from('1234567890', NULL, NULL)")
+        return rows
     }
+}
+
+
+function removeDelimiter(str: string){
+    str = str.replace("DELIMITER $", "").replace("DELIMITER ;", "")
+    return str.replaceAll("END$","END;")
 }

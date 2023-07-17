@@ -6,6 +6,8 @@ CREATE TRIGGER check_collection_uniqueness BEFORE INSERT ON collection FOR EACH 
 BEGIN
 	DECLARE number_of_collections INT;
     DECLARE collector_name varchar(100);
+    DECLARE exists_collection BOOLEAN;
+    DECLARE error_message varchar(200);
 	SET exists_collection = (
 		SELECT COUNT(*)
 		FROM collection c
@@ -25,6 +27,7 @@ END$
 CREATE TRIGGER check_collection_share BEFORE INSERT ON shared_collection FOR EACH ROW
 BEGIN
     DECLARE owner_id INT;
+    DECLARE error_message VARCHAR(200);
     SET owner_id = (
         SELECT c.collector_id
         FROM collection c

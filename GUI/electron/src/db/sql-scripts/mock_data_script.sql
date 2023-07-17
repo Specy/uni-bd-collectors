@@ -1,3 +1,4 @@
+
 SET FOREIGN_KEY_CHECKS = 0;
 TRUNCATE TABLE track_contribution;
 TRUNCATE TABLE track;
@@ -72,17 +73,18 @@ INSERT INTO collector (username, email) VALUES
     ('metalhead88', 'metalhead88@example.com');
 
 INSERT INTO collection (collection_name, collector_id, is_public) VALUES
-    ('My Vinyl Collection', 1, 1),
+    ('My Vinyl Collection', 1, 0),
     ('Favorite CDs', 3, 0),
     ('Metal Albums', 4, 1),
-    ('Classic Rock', 2, 1);
+    ('Classic Rock', 2, 1),
+    ('Madonna', 2, 0);
+
 
 INSERT INTO shared_collection (collection_id, collector_id) VALUES
     (1, 2),
     (2, 1),
     (3, 3),
-    (4, 1),
-    (4, 2);
+    (4, 1);
 
 INSERT INTO disc (title, barcode, release_year, number_of_copies, genre, disc_format, label_id, collection_id, disc_status, artist_id) VALUES
     ('Bohemian Rhapsody', '1234567890', 1975, 1, 'Rock', 'Vinyl', 1, 1, 'New', 1),

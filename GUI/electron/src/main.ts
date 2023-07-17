@@ -2,11 +2,10 @@ import { app, BrowserWindow, ipcMain as ipc, protocol, dialog, shell } from "ele
 import url from "url";
 import path from "path";
 import { PATHS, ROOT_PATH } from "./utils";
-import fs from "fs/promises"
 import serve from "electron-serve";
-import { request } from "undici";
-import semver from "semver";
 import log from "electron-log";
+import { CollectorsDb } from "./db/collectors-db";
+import { createDatabase } from "./db/db";
 const isDev = !app.isPackaged
 
 try {
@@ -49,7 +48,6 @@ function loadSplash() {
 
 let hasLoaded = false;
 function createWindow() {
-    console.log(path.join(PATHS.electronStatic, "/icons/icon.png"))
     const win = new BrowserWindow({
         width: 1280,
         height: 720,
@@ -79,7 +77,7 @@ function createWindow() {
     })
     win.webContents.on('did-finish-load', () => {
         splash?.close();
-        win.show();
+        //win.show();
         hasLoaded = true;
         setTimeout(() => {
             win.setAlwaysOnTop(false)
@@ -94,7 +92,7 @@ function sendLog(type: "error" | "warn" | "log", message: string, timeout = 5000
 }
 
 
-function setUpIpc(win: BrowserWindow) {
+async function setUpIpc(win: BrowserWindow) {
     //all files that are either being converted or are queued to be converted
     ipc.handle("minimize", () => win.minimize())
     ipc.handle("maximize", () => win.maximize())
@@ -121,6 +119,9 @@ function setUpIpc(win: BrowserWindow) {
     })
     win.on("maximize", () => win.webContents.send("maximize-change", true))
     win.on("unmaximize", () => win.webContents.send("maximize-change", false))
+
+    const db = await CollectorsDb.new("collectors")
+    console.log(await db.test())
 }
 
 
