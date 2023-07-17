@@ -1,75 +1,68 @@
-type Disk = {
+export type DiscInfo = {
     id: number,
-    artists: Artist[],
-    tracks: Track[],
-    images: Image[],
     title: string,
-    barcode?: string,
     year: number,
     genre: string,
-    format: Format, 
-    label: RecordCompany,
+    format: string,
+    label: string,
     quantity: number,
-    conservationStatus: ConservationStatus,
+    barcode?: string,
+    artist: string,
+    conservationStatus: string,
 }
-type RecordCompany = {
+
+export type Disc = DiscInfo & {
+    tracks: TrackInfo[],
+    images: Image[],
+}
+
+export type TrackInfo = {
     id: number,
-    name: string,
-}
-
-enum Format {
-    CD = "CD",
-    DVD = "DVD",
-    VINYL = "VINYL",
-    CASSETTE = "CASSETTE",
-}
-
-enum ConservationStatus {
-    NEW = "NEW",
-    GOOD = "GOOD",
-    BAD = "BAD",
-    VERY_BAD = "VERY_BAD",
-}
-
-
-type Track = {
-    id: number,
-    title: string,  
+    title: string,
     duration: number,
+}
+export type Track = TrackInfo &{
     artists: ArtistRole[]
 }
 
-type ArtistRole = {
+export type ArtistRole = {
     artist: Artist,
     role: string,
 }
 
-type Artist = {
+export type Artist = {
     id: number,
     name: string,
+    stageName: string,
 }
-type Collector = {
+export type Collector = {
     id: number,
-    nickname: string,
+    username: string,
     email: string,
 }
 
-enum ImageKind{
-    COVER = "COVER",
-    BACK = "BACK",
-    DISC = "DISC",
-    OTHER = "OTHER",
-}
 
-type Image = {
-    kind: ImageKind,
+export type Image = {
+    kind: string,
     src: string,
 }
 
-type Collection = {
+export type CollectionInfo = {
     id: number,
     name: string,
-    isPublic: boolean
+    isPublic: boolean,
+    ownerId: number,
+}
+
+
+export type Collection = CollectionInfo &{
+    owner: Collector,
     collectors?: Collector[],
-    disks: Disk[],
+    disks: DiscInfo[],
+}
+
+
+export type CollectionsOfCollector = {
+    collections: CollectionInfo[],
+    visibleCollections: CollectionInfo[]
 }

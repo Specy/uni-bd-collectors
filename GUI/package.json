@@ -12,6 +12,7 @@
     "build": "tsc && cd client && npm run build && cd .. && electron-forge make",
     "build:debug": "set DEBUG=electron-forge:* && npm run build",
     "electron": "concurrently \"npm run start:electron\" \"npm run start:client\"",
+    "dev": "concurrently \"npm run dev:electron\" \"npm run dev:client\"",
     "start": "electron-forge start",
     "dev:electron": "tsc && electron .",
     "dev:client": "cd client && npm run dev",
@@ -19,6 +20,7 @@
     "start:client": "cd client && npm run preview",
     "package": "electron-forge package",
     "make": "electron-forge make",
+    "install-and-run": "npm run installDeps && npm run dev",
     "ci": "npm run installDeps && npm run build"
   },
   "repository": {

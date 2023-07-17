@@ -5,7 +5,6 @@ import { PATHS, ROOT_PATH } from "./utils";
 import serve from "electron-serve";
 import log from "electron-log";
 import { CollectorsDb } from "./db/collectors-db";
-import { createDatabase } from "./db/db";
 const isDev = !app.isPackaged
 
 try {
@@ -47,7 +46,7 @@ function loadSplash() {
 }
 
 let hasLoaded = false;
-function createWindow() {
+function createWindow(db: CollectorsDb) {
     const win = new BrowserWindow({
         width: 1280,
         height: 720,
@@ -77,13 +76,13 @@ function createWindow() {
     })
     win.webContents.on('did-finish-load', () => {
         splash?.close();
-        //win.show();
+        win.show()
         hasLoaded = true;
         setTimeout(() => {
             win.setAlwaysOnTop(false)
         }, 200)
     })
-    setUpIpc(win);
+    setUpIpc(win, db);
 }
 
 
@@ -92,7 +91,7 @@ function sendLog(type: "error" | "warn" | "log", message: string, timeout = 5000
 }
 
 
-async function setUpIpc(win: BrowserWindow) {
+async function setUpIpc(win: BrowserWindow, db: CollectorsDb) {
     //all files that are either being converted or are queued to be converted
     ipc.handle("minimize", () => win.minimize())
     ipc.handle("maximize", () => win.maximize())
@@ -117,11 +116,32 @@ async function setUpIpc(win: BrowserWindow) {
     ipc.on("goto-external", (e, url) => {
         shell.openExternal(url);
     })
+    ipc.handle('get-collections-of-collector', async (e, { collectorId, includeVisibleCollections }) => {
+        return await db.getCollectionsOfCollector(collectorId, includeVisibleCollections)
+    })
+    ipc.handle("get-collection", async (e, { collectionId }) => {
+        return await db.getCollection(collectionId)
+    })
+    ipc.handle("get-disc", async (e, { diskId }) => {
+        return await db.getDisc(diskId)
+    })
+    ipc.handle("get-discs-of-collection", async (e, { collectionId }) => {
+        return await db.getDiscsOfCollection(collectionId)
+    })
+    ipc.handle("set-collection-visibility", async (e, { collectionId, isVisible }) => {
+        await db.setCollectionVisibility(collectionId, isVisible)
+    })
+    ipc.handle('login-user', async (e, { username, email }) => {
+        return await db.loginUser(username, email)
+    })
+    ipc.handle('get-collector-by-mail', async (e, { email }) => {
+        return await db.getCollectorByMail(email)
+    })
+    ipc.handle('set-collector-in-collection', async (e, { collectionId, collectorId, isInCollection }) => {
+        await db.setCollectorInCollection(collectionId, collectorId, isInCollection)
+    })
     win.on("maximize", () => win.webContents.send("maximize-change", true))
     win.on("unmaximize", () => win.webContents.send("maximize-change", false))
-
-    const db = await CollectorsDb.new("collectors")
-    console.log(await db.test())
 }
 
 
@@ -134,9 +154,10 @@ function disposeAndQuit() {
 process.on('SIGINT', disposeAndQuit)
 process.on('SIGTERM', disposeAndQuit)
 process.on('SIGQUIT', disposeAndQuit)
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
     loadSplash()
-    createWindow()
+    const db = await CollectorsDb.new("collectors")
+    createWindow(db)
     protocol.registerFileProtocol('resource', (request, callback) => {
         const filePath = url.fileURLToPath('file://' + request.url.slice('resource://'.length))
         callback(filePath)

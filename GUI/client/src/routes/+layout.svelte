@@ -9,7 +9,9 @@
 	import SideMenu from '$cmp/layout/SideMenu.svelte';
 	import FaHome from 'svelte-icons/fa/FaHome.svelte'
 	import SideMenuOption from '$cmp/layout/SideMenuOption.svelte';
+	import FaUserAlt from 'svelte-icons/fa/FaUserAlt.svelte'
 	import { onMount } from 'svelte';
+	import { userStore } from '$stores/userStore';
 
 	let maximized = false;
 	onMount(() => {
@@ -37,6 +39,11 @@
 							<SideMenuOption to="/">
 								<FaHome />
 							</SideMenuOption>
+							{#if $userStore.user}
+								<SideMenuOption to={`user/${$userStore.user.id}`}>
+									<FaUserAlt />
+								</SideMenuOption>
+							{/if}
 						</div>
 						<div slot="bottom" class="links">
 						</div>

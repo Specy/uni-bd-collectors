@@ -67,7 +67,7 @@ INSERT INTO label (label_name) VALUES
     ('Columbia Records');
 
 INSERT INTO collector (username, email) VALUES
-    ('musiclover123', 'musiclover123@example.com'),
+    ('test', 'test@test.com'),
     ('vinyljunkie', 'vinyljunkie@example.com'),
     ('cdcollector', 'cdcollector@example.com'),
     ('metalhead88', 'metalhead88@example.com');
@@ -95,18 +95,18 @@ INSERT INTO disc (title, barcode, release_year, number_of_copies, genre, disc_fo
     ('Space Oddity', '3333333333', 1969, 4, 'Rock', 'Vinyl', 6, 4, 'Damaged', 5);
 
 INSERT INTO image (image_path, image_format) VALUES
-    ('/images/bohemian_rhapsody_front.jpg', 'Front Image'),
-    ('/images/bohemian_rhapsody_back.jpg', 'Back Image'),
-    ('/images/thriller_front.jpg', 'Front Image'),
-    ('/images/thriller_back.jpg', 'Back Image'),
-    ('/images/black_album_front.jpg', 'Front Image'),
-    ('/images/black_album_back.jpg', 'Back Image'),
-    ('/images/sgt_pepper_front.jpg', 'Front Image'),
-    ('/images/sgt_pepper_back.jpg', 'Back Image'),
-    ('/images/like_a_virgin_front.jpg', 'Front Image'),
-    ('/images/like_a_virgin_back.jpg', 'Back Image'),
-    ('/images/space_oddity_front.jpg', 'Front Image'),
-    ('/images/space_oddity_back.jpg', 'Back Image');
+    ('https://picsum.photos/500/500', 'Front Image'),
+    ('https://picsum.photos/500/500', 'Back Image'),
+    ('https://picsum.photos/500/500', 'Front Image'),
+    ('https://picsum.photos/500/500', 'Back Image'),
+    ('https://picsum.photos/500/500', 'Front Image'),
+    ('https://picsum.photos/500/500', 'Back Image'),
+    ('https://picsum.photos/500/500', 'Front Image'),
+    ('https://picsum.photos/500/500', 'Back Image'),
+    ('https://picsum.photos/500/500', 'Front Image'),
+    ('https://picsum.photos/500/500', 'Back Image'),
+    ('https://picsum.photos/500/500', 'Front Image'),
+    ('https://picsum.photos/500/500', 'Back Image');
 
 INSERT INTO track (track_length, title, disc_id) VALUES
     (355, 'Bohemian Rhapsody', 1),

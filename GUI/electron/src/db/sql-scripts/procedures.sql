@@ -356,3 +356,168 @@ BEGIN
 END$
 
 DELIMITER ;
+
+-- Other queries for the GUI
+DROP PROCEDURE IF EXISTS get_collections_of_collector;
+DROP PROCEDURE IF EXISTS get_visible_collections_of_collector;
+DROP PROCEDURE IF EXISTS get_collection;
+DROP PROCEDURE IF EXISTS get_collectors_of_collection;
+DROP PROCEDURE IF EXISTS get_collector;
+DROP PROCEDURE IF EXISTS get_disc;
+DROP PROCEDURE IF EXISTS get_artist;
+DROP PROCEDURE IF EXISTS get_images_of_disc;
+DROP PROCEDURE IF EXISTS login_user;
+
+CREATE PROCEDURE get_collections_of_collector(
+    IN collector_id INT
+)
+BEGIN
+    SELECT
+        c.id AS collection_id,
+        c.collection_name AS collection_name,
+        c.is_public AS is_public,
+        c.collector_id AS collector_id
+    FROM collection c
+    WHERE c.collector_id = collector_id;
+END$
+-- ----------------------------------
+CREATE PROCEDURE get_visible_collections_of_collector(
+    IN collector_id INT
+)
+BEGIN
+    SELECT DISTINCT
+        c.id AS collection_id,
+        c.collection_name AS collection_name,
+        c.is_public AS is_public,
+        c.collector_id AS collector_id
+    FROM collection c
+    LEFT JOIN shared_collection sc ON c.id = sc.collection_id
+    WHERE c.collector_id = collector_id OR c.is_public = TRUE;
+END$
+-- ----------------------------------
+CREATE PROCEDURE get_collection(
+    IN collection_id INT
+)
+BEGIN
+    SELECT
+        c.id AS collection_id,
+        c.collection_name AS collection_name,
+        c.is_public AS is_public,
+        c.collector_id AS collector_id,
+        co.username AS collector_username,
+        co.email AS collector_email
+    FROM collection c
+    JOIN collector co ON c.collector_id = co.id
+    WHERE c.id = collection_id;
+END$
+-- ----------------------------------
+CREATE PROCEDURE get_collectors_of_collection(
+    IN collection_id INT
+)
+BEGIN
+    SELECT
+        co.id AS collector_id,
+        co.username AS collector_username,
+        co.email AS collector_email
+    FROM shared_collection sc
+    JOIN collector co ON sc.collector_id = co.id
+    WHERE sc.collection_id = collection_id;
+END$
+-- ----------------------------------
+CREATE PROCEDURE get_collector(
+    IN collector_id INT
+)
+BEGIN
+    SELECT
+        co.id AS collector_id,
+        co.username AS collector_username,
+        co.email AS collector_email
+    FROM collector co
+    WHERE co.id = collector_id;
+END$
+-- ----------------------------------
+CREATE PROCEDURE get_disc(
+    IN disc_id INT
+)
+BEGIN
+    SELECT
+        d.id AS disc_id,
+        d.title AS disc_title,
+        d.barcode AS disc_barcode,
+        d.release_year AS disc_release_year,
+        d.number_of_copies AS disc_number_of_copies,
+        d.genre AS disc_genre,
+        d.disc_format AS disc_format,
+        d.disc_status AS disc_status,
+        a.stage_name AS artist_stage_name,
+        l.label_name AS label_name
+    FROM disc d
+    JOIN artist a ON d.artist_id = a.id
+    JOIN label l ON d.label_id = l.id
+    WHERE d.id = disc_id;
+END$
+-- ----------------------------------
+
+CREATE PROCEDURE get_artist(
+    IN artist_id INT
+)
+BEGIN
+    SELECT
+        a.id AS artist_id,
+        a.stage_name AS artist_stage_name,
+        a.artist_name AS artist_name
+    FROM artist a
+    WHERE a.id = artist_id;
+END$
+-- ----------------------------------
+CREATE PROCEDURE get_images_of_disc(
+    IN disc_id INT
+)
+BEGIN
+    SELECT
+        i.id AS image_id,
+        i.image_path AS image_path,
+        i.image_format AS image_format
+    FROM image i
+    WHERE i.disc_id = disc_id;
+END$
+-- ----------------------------------
+CREATE PROCEDURE login_user(
+    IN username VARCHAR(100),
+    IN email VARCHAR(100)
+)
+BEGIN
+    SELECT
+        c.id AS collector_id,
+        c.username AS collector_username,
+        c.email AS collector_email
+    FROM collector c
+    WHERE c.username = username AND c.email = email;
+END$
+-- ----------------------------------
+CREATE PROCEDURE get_collector_by_mail(
+    IN email VARCHAR(100)
+)
+BEGIN
+    SELECT
+        c.id AS collector_id,
+        c.username AS collector_username,
+        c.email AS collector_email
+    FROM collector c
+    WHERE c.email = email;
+END$
+-- ----------------------------------
+CREATE PROCEDURE set_collector_in_collection(
+    IN collection_id INT,
+    IN collector_id INT,
+    IN is_part BOOLEAN
+)
+BEGIN
+    IF (is_part) THEN
+        INSERT IGNORE INTO shared_collection(collection_id, collector_id)
+        VALUES (collection_id, collector_id);
+    ELSE
+        DELETE FROM shared_collection
+        WHERE collection_id = collection_id AND collector_id = collector_id;
+    END IF;
+END$

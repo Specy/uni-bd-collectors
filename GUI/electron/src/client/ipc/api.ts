@@ -1,3 +1,4 @@
+import { Collection, CollectionsOfCollector, Collector, Disc, DiscInfo } from "../../common/types/CollectorsTypes";
 import { contextBridge, ipcRenderer as ipc } from "electron";
 
 type EventListener = {
@@ -86,6 +87,30 @@ contextBridge.exposeInMainWorld("controls", controls)
 const api = {
     ping: async () => {
         return ipc.invoke("ping")
+    },
+    getCollectionsOfCollector: async (collectorId: number, includeVisibleCollections: boolean) => {
+        return ipc.invoke("get-collections-of-collector", { collectorId, includeVisibleCollections }) as Promise<CollectionsOfCollector | null>
+    },
+    getCollection: async (collectionId: number) => {
+        return ipc.invoke("get-collection", { collectionId }) as Promise<Collection | null>
+    },
+    getDiscsOfCollection: async (collectionId: number) => {
+        return ipc.invoke("get-discs-of-collection", { collectionId }) as Promise<DiscInfo[] | null>
+    },
+    getDisc: async (discId: number) => {
+        return ipc.invoke("get-disc", { discId }) as Promise<Disc | null>
+    },
+    setCollectionVisibility: async (collectionId: number, isVisible: boolean) => {
+        return ipc.invoke("set-collection-visibility", { collectionId, isVisible }) as Promise<void>
+    },
+    loginUser: async (username: string, email: string) => {
+        return ipc.invoke("login-user", { username, email }) as Promise<Collector | null>
+    },
+    setCollectorInCollection: async (collectionId: number, collectorId: number, isInCollection: boolean) => {
+        return ipc.invoke("set-collector-in-collection", { collectionId, collectorId, isInCollection }) as Promise<void>
+    },
+    getCollectorByMail: async (email: string) => {
+        return ipc.invoke("get-collector-by-mail", { email }) as Promise<Collector | null>
     },
 }
 
