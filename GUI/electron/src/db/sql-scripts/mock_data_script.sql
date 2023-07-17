@@ -31,8 +31,8 @@ INSERT INTO artist_role (role_name) VALUES
     ('Backup Singer');
 
 INSERT INTO image_type (type_name) VALUES
-    ('Front Image'),
-    ('Back Image');
+    ('Front'),
+    ('Back');
 
 INSERT INTO disc_genre (genre_name) VALUES
     ('Rock'),
@@ -94,19 +94,18 @@ INSERT INTO disc (title, barcode, release_year, number_of_copies, genre, disc_fo
     ('Like a Virgin', '2222222222', 1984, 8, 'Pop', 'CD', 5, 2, 'New', 6),
     ('Space Oddity', '3333333333', 1969, 4, 'Rock', 'Vinyl', 6, 4, 'Damaged', 5);
 
-INSERT INTO image (image_path, image_format) VALUES
-    ('https://picsum.photos/500/500', 'Front Image'),
-    ('https://picsum.photos/500/500', 'Back Image'),
-    ('https://picsum.photos/500/500', 'Front Image'),
-    ('https://picsum.photos/500/500', 'Back Image'),
-    ('https://picsum.photos/500/500', 'Front Image'),
-    ('https://picsum.photos/500/500', 'Back Image'),
-    ('https://picsum.photos/500/500', 'Front Image'),
-    ('https://picsum.photos/500/500', 'Back Image'),
-    ('https://picsum.photos/500/500', 'Front Image'),
-    ('https://picsum.photos/500/500', 'Back Image'),
-    ('https://picsum.photos/500/500', 'Front Image'),
-    ('https://picsum.photos/500/500', 'Back Image');
+INSERT INTO image (image_path, image_format, disc_id) VALUES
+    ('https://picsum.photos/500/500', 'Front', 1),
+    ('https://picsum.photos/500/500', 'Back', 1),
+    ('https://picsum.photos/500/500', 'Front', 2),
+    ('https://picsum.photos/500/500', 'Back', 2),    
+    ('https://picsum.photos/500/500', 'Front', 3),
+    ('https://picsum.photos/500/500', 'Back', 4),    
+    ('https://picsum.photos/500/500', 'Front', 4),
+    ('https://picsum.photos/500/500', 'Back', 5);
+
+
+
 
 INSERT INTO track (track_length, title, disc_id) VALUES
     (355, 'Bohemian Rhapsody', 1),

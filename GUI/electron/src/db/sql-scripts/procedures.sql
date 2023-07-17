@@ -127,7 +127,8 @@ BEGIN
         d.disc_format AS disc_format,
         d.disc_status AS disc_status,
         a.stage_name AS artist_stage_name,
-        l.label_name AS label_name
+        l.label_name AS label_name,
+        d.collection_id AS collection_id
     FROM disc d
     JOIN artist a ON d.artist_id = a.id
     JOIN label l ON d.label_id = l.id
@@ -143,7 +144,8 @@ BEGIN
     SELECT
         t.id AS track_id,
         t.track_length AS track_length,
-        t.title AS track_title
+        t.title AS track_title,
+        t.disc_id AS disc_id
     FROM track t
     WHERE t.disc_id = disc_id;
 END$
@@ -176,7 +178,8 @@ BEGIN
         d.disc_format AS disc_format,
         d.disc_status AS disc_status,
         a.stage_name AS artist_stage_name,
-        l.label_name AS label_name
+        l.label_name AS label_name,
+        d.collection_id AS collection_id
     FROM disc d
     JOIN artist a ON d.artist_id = a.id
     JOIN label l ON d.label_id = l.id
@@ -341,7 +344,8 @@ BEGIN
         d.disc_format AS disc_format,
         d.disc_status AS disc_status,
         a.stage_name AS artist_stage_name,
-        l.label_name AS label_name
+        l.label_name AS label_name,
+        d.collection_id AS collection_id
     FROM disc d
     JOIN artist a ON d.artist_id = a.id
     JOIN label l ON d.label_id = l.id
@@ -367,6 +371,13 @@ DROP PROCEDURE IF EXISTS get_disc;
 DROP PROCEDURE IF EXISTS get_artist;
 DROP PROCEDURE IF EXISTS get_images_of_disc;
 DROP PROCEDURE IF EXISTS login_user;
+DROP PROCEDURE IF EXISTS get_collector_by_mail;
+DROP PROCEDURE IF EXISTS set_collector_in_collection;
+DROP PROCEDURE IF EXISTS add_collector;
+DROP PROCEDURE IF EXISTS get_track_contributors;
+DROP PROCEDURE IF EXISTS get_track;
+
+
 
 CREATE PROCEDURE get_collections_of_collector(
     IN collector_id INT
@@ -450,7 +461,8 @@ BEGIN
         d.disc_format AS disc_format,
         d.disc_status AS disc_status,
         a.stage_name AS artist_stage_name,
-        l.label_name AS label_name
+        l.label_name AS label_name,
+        d.collection_id AS collection_id
     FROM disc d
     JOIN artist a ON d.artist_id = a.id
     JOIN label l ON d.label_id = l.id
@@ -520,4 +532,41 @@ BEGIN
         DELETE FROM shared_collection
         WHERE collection_id = collection_id AND collector_id = collector_id;
     END IF;
+END$
+-- ----------------------------------
+CREATE PROCEDURE add_collector(
+    IN username VARCHAR(100),
+    IN email VARCHAR(100)
+)
+BEGIN
+    INSERT IGNORE INTO collector(username, email)
+    VALUES (username, email);
+END$
+-- ----------------------------------
+CREATE PROCEDURE get_track_contributors(
+    IN track_id INT
+)
+BEGIN
+    SELECT
+
+        tc.artist_id AS artist_id,
+        tc.contribution_type AS contribution_type,
+        a.stage_name AS artist_stage_name,
+        a.artist_name AS artist_name
+    FROM track_contribution tc
+    JOIN artist a ON tc.artist_id = a.id
+    WHERE tc.track_id = track_id;
+END$
+-- ----------------------------------
+CREATE PROCEDURE get_track(
+    IN track_id INT
+)
+BEGIN 
+    SELECT 
+        t.id AS track_id,
+        t.track_length AS track_length,
+        t.title AS track_title,
+        t.disc_id AS disc_id
+    FROM track t    
+    WHERE t.id = track_id;
 END$

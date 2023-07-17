@@ -1,15 +1,16 @@
 <script lang="ts">
-	import '../global.css'
-	import ErrorLogger from '$cmp/providers/LoggerProvider.svelte'
-	import PageTransition from '$cmp/providers/PageTransition.svelte'
-	import { page } from '$app/stores'
-	import ThemeProvider from '$cmp/providers/ThemeProvider.svelte'
-	import PromptProvider from '$cmp/providers/PromptProvider.svelte'
+	import '../global.css';
+	import ErrorLogger from '$cmp/providers/LoggerProvider.svelte';
+	import PageTransition from '$cmp/providers/PageTransition.svelte';
+	import { page } from '$app/stores';
+	import ThemeProvider from '$cmp/providers/ThemeProvider.svelte';
+	import PromptProvider from '$cmp/providers/PromptProvider.svelte';
 	import Titlebar from '$cmp/layout/Titlebar.svelte';
 	import SideMenu from '$cmp/layout/SideMenu.svelte';
-	import FaHome from 'svelte-icons/fa/FaHome.svelte'
+	import FaHome from 'svelte-icons/fa/FaHome.svelte';
 	import SideMenuOption from '$cmp/layout/SideMenuOption.svelte';
-	import FaUserAlt from 'svelte-icons/fa/FaUserAlt.svelte'
+	import FaMusic from 'svelte-icons/fa/FaMusic.svelte';
+	import FaUserAlt from 'svelte-icons/fa/FaUserAlt.svelte';
 	import { onMount } from 'svelte';
 	import { userStore } from '$stores/userStore';
 
@@ -17,18 +18,14 @@
 	onMount(() => {
 		const idMaximization = window.controls.addOnMaximizationChange((isMaximized) => {
 			maximized = isMaximized;
-		})
+		});
 		return () => {
-			window.controls.removeOnMaximizationChange(idMaximization)
-		}
-	})
-
+			window.controls.removeOnMaximizationChange(idMaximization);
+		};
+	});
 </script>
 
-<div 
-	class="root"
-	class:maximized
->
+<div class="root" class:maximized>
 	<ThemeProvider>
 		<ErrorLogger>
 			<PromptProvider>
@@ -40,13 +37,12 @@
 								<FaHome />
 							</SideMenuOption>
 							{#if $userStore.user}
-								<SideMenuOption to={`user/${$userStore.user.id}`}>
+								<SideMenuOption to={`/user/${$userStore.user.id}`}>
 									<FaUserAlt />
 								</SideMenuOption>
 							{/if}
 						</div>
-						<div slot="bottom" class="links">
-						</div>
+						<div slot="bottom" class="links" />
 					</SideMenu>
 					<PageTransition refresh={$page.url.pathname}>
 						<slot />
@@ -58,17 +54,17 @@
 </div>
 
 <style lang="scss">
-	.content{
+	.content {
 		display: flex;
 		height: 100%;
 		overflow: hidden;
 	}
-	.links{
+	.links {
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
 	}
-	.root{
+	.root {
 		background-color: var(--primary);
 		color: var(--primary-text);
 		border-radius: 0.6rem;
@@ -77,7 +73,7 @@
 		flex-direction: column;
 		overflow: hidden;
 	}
-	.maximized{
+	.maximized {
 		border-radius: 0;
 	}
 </style>

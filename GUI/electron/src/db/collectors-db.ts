@@ -3,7 +3,7 @@ import path from "path";
 import fs from "fs/promises";
 import { PATHS } from "../utils";
 import { DEFAULT_CONNECTION, createDatabase } from "./db";
-import { Artist, Collection, CollectionInfo, CollectionsOfCollector, Collector, Disc, DiscInfo, Image, Track, TrackInfo } from "common/types/CollectorsTypes";
+import { Artist, ArtistRole, Collection, CollectionInfo, CollectionsOfCollector, Collector, Disc, DiscInfo, Image, Track, TrackInfo } from "common/types/CollectorsTypes";
 //db.execute is a prepared statement
 export class CollectorsDb {
     private db: Connection;
@@ -94,6 +94,11 @@ export class CollectorsDb {
         if (!collector.length || !collector[0].length) return null
         return parseCollector(collector[0][0])
     }
+    async createCollector(username: string, email: string) {
+        await this.db.execute("CALL add_collector(?, ?)", [username, email]) as ProcedureResponse
+        const collector = await this.getCollectorByMail(email)
+        return collector
+    }
     async getCollectionInfo(collectionId: number) {
         const [collection] = await this.db.execute("CALL get_collection(?)", [collectionId]) as ProcedureResponse
         if (!collection.length || !collection[0].length) return null
@@ -117,6 +122,10 @@ export class CollectorsDb {
         if (!images.length) return null
         return images[0].map(parseImage)
     }
+    async createCollection(name: string, isPublic: boolean, ownerId: number) {
+
+        
+    }
     async getArtist(artistId: number) {
         const [artist] = await this.db.execute("CALL get_artist(?)", [artistId]) as ProcedureResponse
         if (!artist.length || !artist[0].length) return null
@@ -128,7 +137,7 @@ export class CollectorsDb {
         return parseDiskInfo(discInfo[0][0])
     }
     async getTracksOfDisc(discId: number) {
-        const [tracks] = await this.db.execute("CALL get_tracks_of_disc(?)", [discId]) as ProcedureResponse
+        const [tracks] = await this.db.execute("CALL get_disc_tracks(?)", [discId]) as ProcedureResponse
         if (!tracks.length) return null
         return tracks[0].map(parseTrackInfo)
     }
@@ -151,6 +160,26 @@ export class CollectorsDb {
             images,
             tracks
         } as Disc
+    }
+    async getTrackContributors(trackId: number) {
+        const [contributors] = await this.db.execute("CALL get_track_contributors(?)", [trackId]) as ProcedureResponse
+        if (!contributors.length) return null
+        return contributors[0].map((e) => {
+            return {
+                artist: parseArtist(e),
+                role: e.contribution_type
+            } as ArtistRole
+        })
+    }
+    async getTrack(trackId: number) {
+        const [track] = await this.db.execute("CALL get_track(?)", [trackId]) as ProcedureResponse
+        if (!track.length || !track[0].length) return null
+        const parsed = parseTrackInfo(track[0][0])
+        const contributors = await this.getTrackContributors(trackId)
+        return {
+            ...parsed,
+            artists: contributors
+        } as Track
     }
 }
 
@@ -191,7 +220,8 @@ function parseTrackInfo(track: any): TrackInfo {
     return {
         id: track.track_id,
         title: track.track_title,
-        duration: track.track_length
+        duration: track.track_length,
+        discId: track.disc_id
     }
 }
 function parseDiskInfo(disk: any): DiscInfo {
@@ -205,7 +235,8 @@ function parseDiskInfo(disk: any): DiscInfo {
         format: disk.disc_format,
         conservationStatus: disk.disc_status,
         label: disk.label_name,
-        artist: disk.artist_stage_name
+        artist: disk.artist_stage_name,
+        collectionId: disk.collection_id
     }
 }
 

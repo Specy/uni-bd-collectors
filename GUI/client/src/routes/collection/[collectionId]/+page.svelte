@@ -18,11 +18,12 @@
 	$: collection = data.props.collection;
 	$: isOwned = $userStore.user?.id === collection.owner.id;
     let userMailToAdd = ''
+
 	async function toggleVisibility() {
 		const prev = collection.isPublic;
 		collection.isPublic = !collection.isPublic;
 		try {
-			await window.api.setCollectionVisibility(collection.id, !collection.isPublic);
+			await window.api.setCollectionVisibility(collection.id, !prev);
 		} catch (e) {
 			collection.isPublic = prev;
 			toast.error('Error changing collection visibility');
@@ -120,9 +121,9 @@
         <h3>
             Add collector
         </h3>
-        <form class="row" style="gap: 1rem" on:submit|preventDefault={addNewCollector} >
+        <form class="row" style="gap: 0.4rem" on:submit|preventDefault={addNewCollector} >
             <Input bind:value={userMailToAdd} placeholder="email"/>
-            <Submit value="Add" />
+            <Submit value="Add" disabled={userMailToAdd === ""}/>
         </form>
 	{/if}
 </div>

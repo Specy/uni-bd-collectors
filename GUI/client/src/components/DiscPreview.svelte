@@ -3,7 +3,7 @@
     export let disc: DiscInfo
 </script>
 
-<a class="disc row" href="disc/{disc.id}">
+<a class="disc row" href="/disc/{disc.id}">
     <div class="title">
         {disc.title}
     </div>

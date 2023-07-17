@@ -42,3 +42,10 @@ export function delay(ms:number){
     return new Promise(resolve => setTimeout(resolve, ms))
 }
 
+
+export function toFormattedTime(seconds: number) {
+    return new Date(seconds * 1000).toLocaleTimeString([], {
+        minute: 'numeric',
+        second: '2-digit'
+    }).replace(/^0+/, '');
+}

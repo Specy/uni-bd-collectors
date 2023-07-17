@@ -9,6 +9,7 @@ export type DiscInfo = {
     barcode?: string,
     artist: string,
     conservationStatus: string,
+    collectionId: number,
 }
 
 export type Disc = DiscInfo & {
@@ -20,6 +21,7 @@ export type TrackInfo = {
     id: number,
     title: string,
     duration: number,
+    discId: number,
 }
 export type Track = TrackInfo &{
     artists: ArtistRole[]

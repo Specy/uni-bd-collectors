@@ -122,8 +122,8 @@ async function setUpIpc(win: BrowserWindow, db: CollectorsDb) {
     ipc.handle("get-collection", async (e, { collectionId }) => {
         return await db.getCollection(collectionId)
     })
-    ipc.handle("get-disc", async (e, { diskId }) => {
-        return await db.getDisc(diskId)
+    ipc.handle("get-disc", async (e, { discId }) => {
+        return await db.getDisc(discId)
     })
     ipc.handle("get-discs-of-collection", async (e, { collectionId }) => {
         return await db.getDiscsOfCollection(collectionId)
@@ -139,6 +139,12 @@ async function setUpIpc(win: BrowserWindow, db: CollectorsDb) {
     })
     ipc.handle('set-collector-in-collection', async (e, { collectionId, collectorId, isInCollection }) => {
         await db.setCollectorInCollection(collectionId, collectorId, isInCollection)
+    })
+    ipc.handle('create-collector', async (e, { username, email }) => {
+        return await db.createCollector(username, email)
+    })
+    ipc.handle('get-track', async (e, { trackId }) => {
+        return await db.getTrack(trackId)
     })
     win.on("maximize", () => win.webContents.send("maximize-change", true))
     win.on("unmaximize", () => win.webContents.send("maximize-change", false))

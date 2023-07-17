@@ -13,14 +13,6 @@ CREATE TABLE IF NOT EXISTS disc_genre(
 CREATE TABLE IF NOT EXISTS disc_format(
 	format_name VARCHAR(40) PRIMARY KEY
 );
-CREATE TABLE IF NOT EXISTS image(
-	id INT AUTO_INCREMENT PRIMARY KEY,
-    image_path VARCHAR(200) NOT NULL,
-    image_format VARCHAR(40),
-    FOREIGN KEY (image_format) REFERENCES image_type(type_name) 
-		ON UPDATE CASCADE 
-        ON DELETE RESTRICT
-);
 CREATE TABLE IF NOT EXISTS artist(
 	id INT AUTO_INCREMENT PRIMARY KEY, 
     stage_name VARCHAR(100) UNIQUE NOT NULL, 
@@ -73,6 +65,18 @@ CREATE TABLE IF NOT EXISTS disc(
         ON DELETE RESTRICT,
 	FOREIGN KEY (genre) REFERENCES disc_genre(genre_name)
 		ON UPDATE CASCADE
+        ON DELETE RESTRICT
+);
+CREATE TABLE IF NOT EXISTS image(
+	id INT AUTO_INCREMENT PRIMARY KEY,
+    image_path VARCHAR(200) NOT NULL,
+    image_format VARCHAR(40),
+    disc_id INT NOT NULL,
+    FOREIGN KEY (disc_id) REFERENCES disc(id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
+    FOREIGN KEY (image_format) REFERENCES image_type(type_name) 
+		ON UPDATE CASCADE 
         ON DELETE RESTRICT
 );
 CREATE TABLE IF NOT EXISTS shared_collection(

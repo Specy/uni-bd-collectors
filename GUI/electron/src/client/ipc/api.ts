@@ -1,4 +1,4 @@
-import { Collection, CollectionsOfCollector, Collector, Disc, DiscInfo } from "../../common/types/CollectorsTypes";
+import { Collection, CollectionsOfCollector, Collector, Disc, DiscInfo, Track } from "../../common/types/CollectorsTypes";
 import { contextBridge, ipcRenderer as ipc } from "electron";
 
 type EventListener = {
@@ -100,6 +100,9 @@ const api = {
     getDisc: async (discId: number) => {
         return ipc.invoke("get-disc", { discId }) as Promise<Disc | null>
     },
+    createCollector: async (username: string, email: string) => {
+        return ipc.invoke("create-collector", { username, email }) as Promise<Collector | null>
+    },
     setCollectionVisibility: async (collectionId: number, isVisible: boolean) => {
         return ipc.invoke("set-collection-visibility", { collectionId, isVisible }) as Promise<void>
     },
@@ -111,6 +114,12 @@ const api = {
     },
     getCollectorByMail: async (email: string) => {
         return ipc.invoke("get-collector-by-mail", { email }) as Promise<Collector | null>
+    },
+    getTrack: async (trackId: number) => {
+        return ipc.invoke("get-track", { trackId }) as Promise<Track | null>
+    },
+    createCollection: async (name: string, isPublic: boolean, ownerId: number) => {
+        return ipc.invoke("create-collection", { name, isPublic, ownerId }) as Promise<Collection | null>
     },
 }
 

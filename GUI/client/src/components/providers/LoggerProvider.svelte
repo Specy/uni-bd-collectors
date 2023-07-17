@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { toast, ToastType } from '$stores/toastStore'
-	import { fly } from 'svelte/transition'
-	import Icon from '$cmp/layout/Icon.svelte'
-	import FaTimes from 'svelte-icons/fa/FaTimes.svelte'
+	import { toast, ToastType } from '$stores/toastStore';
+	import { fly } from 'svelte/transition';
+	import Icon from '$cmp/layout/Icon.svelte';
+	import FaTimes from 'svelte-icons/fa/FaTimes.svelte';
 	import Button from '$cmp/buttons/Button.svelte';
 </script>
 
@@ -14,7 +14,11 @@
 				<div>
 					{$toast.title}
 				</div>
-				<Button on:click={toast.closeToast} style="padding: 0;">
+				<Button
+					on:click={toast.closeToast}
+					style="padding: 0; background-color: transparent;"
+					color="secondary"
+				>
 					<Icon>
 						<FaTimes />
 					</Icon>
@@ -33,7 +37,7 @@
 				/>
 			</div>
 		</div>
-		{:else}
+	{:else}
 		<div class="pill" class:pillVisible={$toast.visible} in:fly={{ y: -100 }}>
 			{$toast.message}
 		</div>
@@ -61,11 +65,11 @@
 		padding: 0.6rem;
 		padding-top: 0.1rem;
 	}
-	.pill{
+	.pill {
 		position: absolute;
 		left: 50vw;
 		top: 0.6rem;
-		padding: 0.6rem 2rem;  
+		padding: 0.6rem 2rem;
 		border-radius: 10rem;
 		background-color: rgba(var(--RGB-secondary), 0.85);
 		backdrop-filter: blur(3px);
@@ -74,7 +78,7 @@
 		transition: transform 0.3s ease-out;
 		transform: translateY(calc(-100% - 1rem)) translateX(-50%);
 	}
-	.pillVisible{
+	.pillVisible {
 		transform: translateY(0) translateX(-50%);
 	}
 	.toastVisible {

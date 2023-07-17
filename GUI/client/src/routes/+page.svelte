@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import Button from '$cmp/buttons/Button.svelte';
 	import Submit from '$cmp/buttons/Submit.svelte';
 	import Input from '$cmp/inputs/Input.svelte';
 	import Title from '$cmp/layout/Title.svelte';
@@ -19,6 +20,18 @@
 			toast.error('Error loggin in');
 		}
 	}
+	async function register(){
+		try {
+			const user = await window.api.createCollector(username, email);
+			console.log(user)
+			if (!user) return toast.error("Couldn't register");
+			toast.success('Registered successfully');
+			userStore.login(user);
+			goto(`/user/${user.id}`);
+		} catch (e) {
+			toast.error('Error registering');
+		}
+	}
 </script>
 
 <div class="page">
@@ -26,7 +39,10 @@
 		<Title noMargin>Collectors</Title>
 		<Input bind:value={username} title="Username" style="background-color: var(--tertiary)" />
 		<Input bind:value={email} title="Email" style="background-color: var(--tertiary)" />
-		<div class="row" style="width:100%; justify-content: flex-end">
+		<div class="row" style="width:100%; justify-content: space-between">
+			<Button on:click={register} cssVar="tertiary">
+				Register
+			</Button>
 			<Submit value="Login"/>
 		</div>
 	</form>
