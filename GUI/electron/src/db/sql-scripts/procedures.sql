@@ -367,7 +367,6 @@ BEGIN
     LIMIT 25;
 END$
 
-DELIMITER ;
 
 -- Other queries for the GUI
 DROP PROCEDURE IF EXISTS get_collections_of_collector;
@@ -704,12 +703,12 @@ BEGIN
     WHERE track.id = track_id;
 END$
 -- ----------------------------------
-CREATE PROCEDURE remove_disk(
-    IN disk_id INT
+CREATE PROCEDURE remove_disc(
+    IN disc_id INT
 )
 BEGIN
     DELETE FROM disc
-    WHERE disc.id = disk_id;
+    WHERE disc.id = disc_id;
 END$
 
 -- ----------------------------------
@@ -723,3 +722,5 @@ BEGIN
     FROM label l
     WHERE l.id = label_id;
 END$
+
+DELIMITER ;

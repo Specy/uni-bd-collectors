@@ -232,8 +232,8 @@
 					</div>
 					<div class="column" style="gap: 0.2rem">
 						{#each searchedDiscs as disc}
-							<DiscPreview {disc} disabled style="background-color: var(--tertiary-darker)" hideTag>
-								<Button on:click={() => loadDisc(disc)}>Load</Button>
+							<DiscPreview {disc} disabled style="background-color: var(--tertiary-darker); margin: 0.2rem" hideTag>
+								<Button on:click={() => loadDisc(disc)} style="margin: 0.4rem">Load</Button>
 							</DiscPreview>
 						{/each}
 					</div>
@@ -470,7 +470,9 @@
 					!number_of_copies ||
 					!genre ||
 					!disc_format ||
-					!disc_status}
+					!disc_status || 
+					!artist ||
+					!label}
 			/>
 		</form>
 	</div>

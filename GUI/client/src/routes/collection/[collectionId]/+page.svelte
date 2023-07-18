@@ -11,12 +11,12 @@
 	import Icon from '$cmp/layout/Icon.svelte';
 	export let data: PageData;
 	import FaUserAltSlash from 'svelte-icons/fa/FaUserAltSlash.svelte';
-    import  FaTrashAlt from 'svelte-icons/fa/FaTrashAlt.svelte'
+	import FaTrashAlt from 'svelte-icons/fa/FaTrashAlt.svelte';
 
 	import Input from '$cmp/inputs/Input.svelte';
 	import Submit from '$cmp/buttons/Submit.svelte';
 	import { Prompt } from '$stores/promptStore';
-	import type { Collector } from '$common/types/CollectorsTypes';
+	import type { Collector, DiscInfo } from '$common/types/CollectorsTypes';
 	$: collection = data.props.collection;
 	$: isOwned = $userStore.user?.id === collection.owner.id;
 	let userMailToAdd = '';
@@ -71,10 +71,14 @@
 			toast.error(`Error adding new collector`);
 		}
 	}
-	async function deleteDisk(diskId: string) {
+	async function deleteDisc(disc: DiscInfo) {
+		const confirm = await Prompt.confirm(
+			`Are you sure you want to delete the disc "${disc.title}"?`
+		);
+		if (!confirm) return;
 		try {
-			await window.api.removeDisc(Number(diskId));
-			collection.disks = collection.disks.filter((d: any) => d.id !== diskId);
+			await window.api.removeDisc(Number(disc.id));
+			collection.disks = collection.disks.filter((d: any) => d.id !== disc.id);
 		} catch (e) {
 			toast.error('Error deleting disk');
 			console.error(e);
@@ -100,11 +104,13 @@
 		<div class="discs-header">Discs</div>
 		{#each collection.disks as disc}
 			<DiscPreview {disc}>
-				<Button on:click={() => deleteDisk(disc.id)}>
-					<Icon>
-						<FaTrashAlt />
-					</Icon>
-				</Button>
+				{#if isOwned}
+					<Button on:click={() => deleteDisc(disc)} style="margin: 0.4rem">
+						<Icon>
+							<FaTrashAlt />
+						</Icon>
+					</Button>
+				{/if}
 			</DiscPreview>
 		{/each}
 		<a href="/collection/{collection.id}/new-disc" class="new-disc"> Add new disc </a>
@@ -143,11 +149,19 @@
 					</Button>
 				</div>
 			{/each}
-			<form class="row" style="gap: 0.4rem; padding-left: 1rem; margin-left: 0.6rem; border-left: solid 0.1rem var(--tertiary)" on:submit|preventDefault={addNewCollector}>
-				<Input bind:value={userMailToAdd} placeholder="Email" innerStyle="height: 2.4rem; width: 10rem" />
+			<form
+				class="row"
+				style="gap: 0.4rem; padding-left: 1rem; margin-left: 0.6rem; border-left: solid 0.1rem var(--tertiary)"
+				on:submit|preventDefault={addNewCollector}
+			>
+				<Input
+					bind:value={userMailToAdd}
+					placeholder="Email"
+					innerStyle="height: 2.4rem; width: 10rem"
+				/>
 				<Submit value="Add" disabled={userMailToAdd === ''} />
 			</form>
-		</div>	
+		</div>
 	{/if}
 </div>
 

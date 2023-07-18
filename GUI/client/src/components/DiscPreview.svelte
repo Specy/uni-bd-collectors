@@ -6,14 +6,10 @@
     export let style = '';
 </script>
 
-<a
-	class="disc row"
+<div class="disc row">
+	<a
+	class="disc-inner row"
 	href="/disc/{disc.id}"
-	on:click={(e) => {
-		if (disabled) {
-			e.preventDefault();
-		}
-	}}
     {style}
 	class:disabled
 >
@@ -29,25 +25,34 @@
 	<div style="max-width: 6rem; text-align: end">
 		{disc.format}
 	</div>
+
+	</a>
 	<slot />
 	{#if !hideTag}
 		<div class="tag">
 			{disc.quantity || 100}
 		</div>
 	{/if}
-</a>
+</div>
+
+
 
 <style lang="scss">
 	.disc {
-		padding: 0.5rem 1rem;
 		background-color: var(--secondary);
 		position: relative;
-		align-items: center;
 		border-radius: 0.2rem;
 		transition: all 0.2s;
 		gap: 1rem;
 	}
-	.disc > div {
+	.disc-inner{
+		padding: 0.5rem 1rem;
+		flex: 1;
+		align-items: center;
+		height: 100%;
+
+	}
+	.disc-inner > div {
 		flex: 1;
 	}
 	.title {

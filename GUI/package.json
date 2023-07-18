@@ -18,9 +18,11 @@
     "dev:client": "cd client && npm run dev",
     "start:electron": "electron .",
     "start:client": "cd client && npm run preview",
+    "build:client": "cd client && npm run build",
+    "start:preview": "concurrently \"npm run dev:electron\" \"npm run start:client\"",
     "package": "electron-forge package",
     "make": "electron-forge make",
-    "install-and-run": "npm run installDeps && npm run dev",
+    "install-and-run": "npm run installDeps && npm run build:client && npm run start:preview",
     "ci": "npm run installDeps && npm run build"
   },
   "repository": {
@@ -43,8 +45,6 @@
     "electron-squirrel-startup": "^1.0.0",
     "mysql2": "^3.5.1",
     "semver": "^7.5.4",
-    "svelte-autocomplete": "^0.0.4",
-    "svelte-typeahead": "^4.4.1",
     "undici": "^5.22.1"
   },
   "devDependencies": {

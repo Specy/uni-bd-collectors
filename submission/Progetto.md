@@ -31,12 +31,12 @@ realistico, e ne verrà tenuto conto durante la valutazione finale.
 Di seguito sono riportate le entità scoperte a seguito dell'analisi della traccia. 
 Il compito del progetto è quello di permettere a **Collezionisti** di tenere traccia delle proprie collezioni di dischi, che possono essere anche condivise con altri. Ogni collezione contiene una lista di dischi, dove ogni disco posseduto da un collezionista specifica il proprio formato, lo stato di conservazione e il numero di copie che possiede. Ogni disco contiene varie informazioni, immagini e tracce.
 
-- Collezionista: Un utente identificato tramite il proprio nickname e una mail
-- Collezione: Una lista di dischi appartenenti a questa collezione, incluso il nome della collezione e se è pubblica o meno. La collezione può essere condivisa con altri collezionisti.
-- Disco: Contiene i dettagli del disco come il nome, gli autori, il titolo, l'anno di uscita, l'etichetta, il genere, lo stato di conservazione, il formato, il barcode se disponibile (univoco), una lista di tracce, e delle immagini
-- Immagine: L'immagine del disco e la tipologia di immagine (se disponibile)
-- Traccia: Una canzone, contiene un titolo, durata, e opzionalmente informazioni sul contributo da parte di artisti.
-- Artista: L'artista che produce una canzone, con il proprio nome d'arte
+- **Collezionista**: Un utente identificato tramite il proprio nickname e una mail
+- **Collezione**: Una lista di dischi appartenenti a questa collezione, incluso il nome della collezione e se è pubblica o meno. La collezione può essere condivisa con altri collezionisti.
+- **Disco**: Contiene i dettagli del disco come il nome, gli autori, il titolo, l'anno di uscita, l'etichetta, il genere, lo stato di conservazione, il formato, il barcode se disponibile, una lista di tracce, e delle immagini
+- **Immagine**: L'immagine del disco e la tipologia di immagine
+- **Traccia**: Una canzone, contiene un titolo, durata, e opzionalmente informazioni sul contributo da parte di artisti.
+- **Artista**: L'artista che produce una canzone, con il proprio nome d'arte
 
 # Implementazioni analizzate
 
@@ -65,7 +65,7 @@ Tutti gli attributi sono NOT NULL ad eccezione di "barcode" che può esserlo in 
 - Sono state create delle nuove entità a partire dagli attributi "genere", "stato", "ruolo", "tipologia", "formato", per rendere più semplice l'aggiunta di nuovi e la eventuale modifica del nome di essi.
 - Il contributo da parte di un artista è stato generalizzato in una nuova entità "Contributo brano" che specifica il contributo di un artista tramite un certo ruolo (tipo cantante, scrittore, chitarrista etc...)
 - La visibilità di una collezione è stata modificata per un valore booleano "isPubblico"
-- Non si è scelto la suddivisione della entità "Disco" dato che tutte le informazioni del disco verranno quasi sempre usate nelle query
+- Anche se abbastanza grande, non si è scelto la suddivisione della entità "Disco" dato che tutte le informazioni del disco verranno sempre usate nelle query
 
 
 ### Traduzione del modello ER nel modello relazionale
@@ -90,19 +90,6 @@ Tutti gli attributi sono NOT NULL ad eccezione di "barcode" che può esserlo in 
 ### Implementazione del modello relazionale
 
 ```sql
-DROP TABLE IF EXISTS track_contribution;
-DROP TABLE IF EXISTS track;
-DROP TABLE IF EXISTS disc;
-DROP TABLE IF EXISTS shared_collection;
-DROP TABLE IF EXISTS collection;
-DROP TABLE IF EXISTS artist;
-DROP TABLE IF EXISTS label;
-DROP TABLE IF EXISTS collector;
-DROP TABLE IF EXISTS image;
-DROP TABLE IF EXISTS disc_genre;
-DROP TABLE IF EXISTS disc_format;
-DROP TABLE IF EXISTS condition_status;
-
 CREATE TABLE IF NOT EXISTS condition_status(
 	condition_name VARCHAR(40) PRIMARY KEY 
 );
@@ -117,14 +104,6 @@ CREATE TABLE IF NOT EXISTS disc_genre(
 );
 CREATE TABLE IF NOT EXISTS disc_format(
 	format_name VARCHAR(40) PRIMARY KEY
-);
-CREATE TABLE IF NOT EXISTS image(
-	id INT AUTO_INCREMENT PRIMARY KEY,
-    image_path VARCHAR(200) NOT NULL,
-    image_format VARCHAR(40),
-    FOREIGN KEY (image_format) REFERENCES image_type(type_name) 
-		ON UPDATE CASCADE 
-        ON DELETE RESTRICT
 );
 CREATE TABLE IF NOT EXISTS artist(
 	id INT AUTO_INCREMENT PRIMARY KEY, 
@@ -180,6 +159,18 @@ CREATE TABLE IF NOT EXISTS disc(
 		ON UPDATE CASCADE
         ON DELETE RESTRICT
 );
+CREATE TABLE IF NOT EXISTS image(
+	id INT AUTO_INCREMENT PRIMARY KEY,
+    image_path VARCHAR(200) NOT NULL,
+    image_format VARCHAR(40),
+    disc_id INT NOT NULL,
+    FOREIGN KEY (disc_id) REFERENCES disc(id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE,
+    FOREIGN KEY (image_format) REFERENCES image_type(type_name) 
+		ON UPDATE CASCADE 
+        ON DELETE RESTRICT
+);
 CREATE TABLE IF NOT EXISTS shared_collection(
 	collection_id INT NOT NULL,
     collector_id INT NOT NULL,
@@ -221,21 +212,6 @@ CREATE TABLE IF NOT EXISTS track_contribution(
 Script per aggiunta di dati al database:
 
 ```sql
-SET FOREIGN_KEY_CHECKS = 0;
-TRUNCATE TABLE track_contribution;
-TRUNCATE TABLE track;
-TRUNCATE TABLE disc;
-TRUNCATE TABLE shared_collection;
-TRUNCATE TABLE collection;
-TRUNCATE TABLE artist;
-TRUNCATE TABLE label;
-TRUNCATE TABLE collector;
-TRUNCATE TABLE image;
-TRUNCATE TABLE disc_genre;
-TRUNCATE TABLE disc_format;
-TRUNCATE TABLE condition_status;
-SET FOREIGN_KEY_CHECKS = 1;
-
 INSERT INTO condition_status (condition_name) VALUES
     ('New'),
     ('Good'),
@@ -367,10 +343,6 @@ INSERT INTO track_contribution (track_id, artist_id, contribution_type) VALUES
 ### Implementazione dei vincoli
 
 ```sql
-DROP TRIGGER IF EXISTS check_collection_uniqueness;
-DROP TRIGGER IF EXISTS check_collection_share;
-DELIMITER $
-
 CREATE TRIGGER check_collection_uniqueness BEFORE INSERT ON collection FOR EACH ROW
 BEGIN
 	DECLARE number_of_collections INT;
@@ -404,33 +376,10 @@ BEGIN
         SIGNAL SQLSTATE "45000" SET MESSAGE_TEXT = error_message;
     END IF;
 END$
-
-DELIMITER ; 
 ```
 
 
 ### Implementazione funzionalità richieste
-
-Script per eliminare tutte le procedure:
-
-```sql
-DROP PROCEDURE IF EXISTS create_collection;
-DROP PROCEDURE IF EXISTS create_disc;
-DROP PROCEDURE IF EXISTS create_track;
-DROP PROCEDURE IF EXISTS set_collection_visibility;
-DROP PROCEDURE IF EXISTS add_contributor_to_collection;
-DROP PROCEDURE IF EXISTS remove_disc_from_collection;
-DROP PROCEDURE IF EXISTS remove_collection;
-DROP PROCEDURE IF EXISTS get_discs_of_collection;
-DROP PROCEDURE IF EXISTS get_disc_tracks;
-DROP PROCEDURE IF EXISTS is_collection_visible_by_collector;
-DROP PROCEDURE IF EXISTS aggregate_number_of_collections_per_collector;
-DROP PROCEDURE IF EXISTS aggregate_number_of_discs_per_genre;
-DROP PROCEDURE IF EXISTS find_best_match_of_disc_from;
-DROP FUNCTION IF EXISTS get_artist_id;
-DROP FUNCTION IF EXISTS count_tracks_of_author_in_public_collections;
-DROP FUNCTION IF EXISTS count_total_track_time_of_artist_in_public_collections;
-```
 
 #### Funzionalità 1
 
@@ -445,6 +394,7 @@ CREATE PROCEDURE create_collection(
 BEGIN
     INSERT INTO collection(collection_name, collector_id, is_public)
     VALUES (collection_name, collector_id, is_public);
+    SELECT LAST_INSERT_ID() AS collection_id;
 END$
 ```
 
@@ -469,6 +419,7 @@ CREATE PROCEDURE create_disc(
 BEGIN 
     INSERT INTO disc(title, barcode, release_year, number_of_copies, genre, disc_format, label_id, collection_id, disc_status, artist_id)
     VALUES (title, barcode, release_year, number_of_copies, genre, disc_format, label_id, collection_id, disc_status, artist_id);
+    SELECT LAST_INSERT_ID() AS disc_id;
 END$
 
 CREATE PROCEDURE create_track(
@@ -517,6 +468,7 @@ BEGIN
 
     INSERT INTO shared_collection(collection_id, collector_id)
     VALUES (collection_id, collector_id);
+
 END$
 ```
 
@@ -567,7 +519,10 @@ BEGIN
         d.disc_format AS disc_format,
         d.disc_status AS disc_status,
         a.stage_name AS artist_stage_name,
-        l.label_name AS label_name
+        l.label_name AS label_name,
+        d.collection_id AS collection_id,
+        l.id AS label_id,
+        a.id AS artist_id
     FROM disc d
     JOIN artist a ON d.artist_id = a.id
     JOIN label l ON d.label_id = l.id
@@ -587,7 +542,8 @@ BEGIN
     SELECT
         t.id AS track_id,
         t.track_length AS track_length,
-        t.title AS track_title
+        t.title AS track_title,
+        t.disc_id AS disc_id
     FROM track t
     WHERE t.disc_id = disc_id;
 END$
@@ -611,7 +567,7 @@ BEGIN
     SET artist_id = (
         SELECT a.id
         FROM artist a
-        WHERE a.stage_name LIKE artist_stage_name
+        WHERE a.stage_name LIKE search_artist_stage_name
     );
 
     SELECT DISTINCT
@@ -624,7 +580,10 @@ BEGIN
         d.disc_format AS disc_format,
         d.disc_status AS disc_status,
         a.stage_name AS artist_stage_name,
-        l.label_name AS label_name
+        l.label_name AS label_name,
+        d.collection_id AS collection_id,
+        l.id AS label_id,
+        a.id AS artist_id
     FROM disc d
     JOIN artist a ON d.artist_id = a.id
     JOIN label l ON d.label_id = l.id
@@ -638,7 +597,7 @@ BEGIN
             (search_in_shared_collections AND sc.collector_id = collector_id) OR
             (search_in_public_collections AND c.is_public = TRUE)
         );
-END $
+END$
 ```
 
 #### Funzionalità 9
@@ -646,12 +605,14 @@ END $
 > Verifica della visibilità di una collezione da parte di un collezionista. _(Suggerimento: una collezione è visibile a un collezionista se è sua, condivisa con lui o pubblica)_
 
 ```sql
-CREATE PROCEDURE is_collection_visible_by_collector(
-    IN collection_id INT,
-    IN collector_id INT
-)
+CREATE FUNCTION is_collection_visible_by_collector(
+    collection_id INT,
+    collector_id INT
+) 
+RETURNS BOOLEAN DETERMINISTIC
 BEGIN
-    SELECT
+    DECLARE is_visible BOOLEAN;
+    SET is_visible = (SELECT
         CASE 
             WHEN 
                 c.is_public OR 
@@ -663,8 +624,14 @@ BEGIN
                 )
             THEN TRUE
             ELSE FALSE 
-        END AS is_visible 
-    FROM collection c;
+        END
+    FROM collection c
+    WHERE c.id = collection_id);
+    IF (is_visible IS NULL) THEN
+        RETURN FALSE;
+    ELSE 
+        RETURN is_visible;
+    END IF;
 END$
 ```
 
@@ -738,19 +705,22 @@ BEGIN
     END IF;
 
     SET total_track_time = (
-        SELECT SUM(t.track_length)
-        FROM track t
-        JOIN track_contribution tc ON t.id = tc.track_id
-        JOIN disc d ON t.disc_id = d.id
-        JOIN collection c ON d.collection_id = c.id
-        WHERE c.is_public = TRUE AND tc.artist_id = artist_id
+        SELECT SUM(track_length)
+        FROM (
+            SELECT DISTINCT t.id, t.track_length
+            FROM track t
+            JOIN track_contribution tc ON t.id = tc.track_id
+            JOIN disc d ON t.disc_id = d.id
+            JOIN collection c ON d.collection_id = c.id
+            WHERE c.is_public = TRUE AND tc.artist_id = artist_id
+        ) AS unique_tracks
     );
     IF (total_track_time IS NULL) THEN
         RETURN 0;
     ELSE 
         RETURN total_track_time;
     END IF;
-END $
+END$
 ```
 
 #### Funzionalità 12
@@ -771,11 +741,11 @@ END$
 CREATE PROCEDURE aggregate_number_of_discs_per_genre()
 BEGIN
     SELECT
-        g.genre AS genre,
+        g.genre_name AS genre,
         COUNT(d.id) AS number_of_discs
     FROM disc d
-    RIGHT JOIN genre g ON g.genre_name = d.genre
-    GROUP BY d.genre;
+    RIGHT JOIN disc_genre g ON g.genre_name = d.genre
+    GROUP BY g.genre_name;
 END$
 ```
 
@@ -800,20 +770,50 @@ BEGIN
         d.disc_format AS disc_format,
         d.disc_status AS disc_status,
         a.stage_name AS artist_stage_name,
-        l.label_name AS label_name
+        l.label_name AS label_name,
+        d.collection_id AS collection_id,
+        l.id AS label_id,
+        a.id AS artist_id
     FROM disc d
     JOIN artist a ON d.artist_id = a.id
     JOIN label l ON d.label_id = l.id
-    WHERE d.barcode = COALESCE(barcode, d.barcode) OR d.title = title
+    WHERE d.barcode = barcode OR d.title LIKE CONCAT('%', title, '%')
     ORDER BY CASE 
         WHEN d.barcode = barcode THEN 1
-        WHEN d.title = title AND a.stage_name = artist_stage_name THEN 2
-        ELSE 3
-    END, barcode ASC
-    LIMIT 50;
+        WHEN d.title LIKE CONCAT('%', title, '%') AND a.stage_name NOT LIKE CONCAT('%', artist_stage_name, '%') THEN 2
+        WHEN d.title LIKE CONCAT('%', title, '%') AND a.stage_name LIKE CONCAT('%', artist_stage_name, '%') THEN 3
+        ELSE 4
+    END
+    LIMIT 25;
 END$
 ```
 
-## Interfaccia verso il database
+# Interfaccia verso il database
 
-è stata creata un interfaccia grafica con l'utilizzo di electron (per avere accesso al database) e un web framework chiamato sveltekit
+è stata creata un interfaccia grafica che implementa le query e le procedure descritte in precedenza tramite l'uso del linguaggio Typescript, Svelte (un framework/linguaggio per la creazione di applicazioni web) e electron con node.js per la creazione di un'applicazione desktop.
+
+### Esecuzione da sorgente
+
+Il codice sorgente può essere scaricato su [questa repository github](https://github.com/Specy/uni-bd-collectors) incluso anche il sorgente markdown di questo documento, i diagrammi e gli script sql
+Si assume una connessione mysql con le seguenti credenziali:
+
+```ts
+export const DEFAULT_CONNECTION = {
+    host: "localhost",
+    port: 3306,
+    user: "root",
+    password: "root",
+} satisfies ConnectionOptions
+```
+
+può essere in caso modificata nel file `GUI/electron/src/db/db.ts`.
+L'applicazione effettuerà da sola la creazione del database `collectors` con tutte le sue tabelle, procedure e funzioni, per poi popolarlo con i dati di esempio.
+Tutti gli script sql che verranno eseguiti possono essere trovati in `GUI/electron/src/db/sql-scripts/` e sono eseguiti all'interno del file `GUI/electron/src/db/collectors-db.ts` dove si possono trovare anche tutte le funzioni di interfaccia con il database e conversione dei risultati delle query in oggetti javascript.
+
+Per eseguire l'applicazione è necessario aver installato [node.js](https://nodejs.org/it/download) e npm (preinstallato con node.js) e poi eseguire il seguente comando nella cartella `GUI`:
+
+```bash
+npm run install-and-run
+```
+
+che installerà tutte le dipendenze necessarie, compilerà il codice sorgente (in preview) e avvierà l'applicazione.
