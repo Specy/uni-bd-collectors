@@ -395,7 +395,7 @@ DROP PROCEDURE IF EXISTS create_image;
 DROP PROCEDURE IF EXISTS create_track;
 DROP PROCEDURE IF EXISTS get_artist_by_stage_name;
 DROP PROCEDURE IF EXISTS remove_track;
-DROP PROCEDURE IF EXISTS remove_disk;
+DROP PROCEDURE IF EXISTS remove_disc;
 DROP PROCEDURE IF EXISTS get_label;
 
 

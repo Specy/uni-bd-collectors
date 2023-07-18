@@ -5,6 +5,7 @@ import { PATHS, ROOT_PATH } from "./utils";
 import serve from "electron-serve";
 import log from "electron-log";
 import { CollectorsDb } from "./db/collectors-db";
+import fs from "fs"
 const isDev = !app.isPackaged
 
 try {
@@ -195,7 +196,11 @@ process.on('SIGTERM', disposeAndQuit)
 process.on('SIGQUIT', disposeAndQuit)
 app.whenReady().then(async () => {
     loadSplash()
-    const db = await CollectorsDb.new("collectors")
+    const hasRanOnce = fs.existsSync(PATHS.hasRanOnce)
+    const db = await CollectorsDb.new("collectors", undefined, !hasRanOnce)
+    if (!hasRanOnce) {
+        fs.writeFileSync(PATHS.hasRanOnce, "1")
+    }
     createWindow(db)
     protocol.registerFileProtocol('resource', (request, callback) => {
         const filePath = url.fileURLToPath('file://' + request.url.slice('resource://'.length))

@@ -19,7 +19,7 @@ export class CollectorsDb {
         await db.execute(`CREATE DATABASE IF NOT EXISTS ${database}`)
         await db.end()
     }
-    static async new(database: string, config: ConnectionOptions = DEFAULT_CONNECTION) {
+    static async new(database: string, config: ConnectionOptions = DEFAULT_CONNECTION, includeMock: boolean = false, reset: boolean = false) {
         await CollectorsDb.ensureDatabaseExists(database, config)
         config = { ...config, database, multipleStatements: true }
         const db = new CollectorsDb(await createDatabase(config))
