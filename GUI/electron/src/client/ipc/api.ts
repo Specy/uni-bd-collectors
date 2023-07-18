@@ -1,4 +1,4 @@
-import { Collection, CollectionsOfCollector, Collector, Disc, DiscInfo, Track } from "../../common/types/CollectorsTypes";
+import { Artist, Collection, CollectionInfo, CollectionsOfCollector, Collector, Disc, DiscInfo, LabelInfo, PopulationOptions, Track } from "../../common/types/CollectorsTypes";
 import { contextBridge, ipcRenderer as ipc } from "electron";
 
 type EventListener = {
@@ -119,8 +119,38 @@ const api = {
         return ipc.invoke("get-track", { trackId }) as Promise<Track | null>
     },
     createCollection: async (name: string, isPublic: boolean, ownerId: number) => {
-        return ipc.invoke("create-collection", { name, isPublic, ownerId }) as Promise<Collection | null>
+        return ipc.invoke("create-collection", { name, isPublic, ownerId }) as Promise<CollectionInfo | null>
     },
+    getPopulationOptions: async () => {
+        return ipc.invoke("get-population-options") as Promise<PopulationOptions | null>
+    },
+    searchDisc: async (title: string | null, artistName: string | null, searchInOwnedDiscs: boolean, searchInSharedDiscs: boolean, searchInPublicDiscs: boolean) => {
+        return ipc.invoke("seach-disc", { title, artistName, searchInOwnedDiscs, searchInSharedDiscs, searchInPublicDiscs }) as Promise<DiscInfo[] | null>
+    },
+    searchDiscBestMatches: async(title: string | null, barcode: string | null, artistName: string | null) => {
+        return ipc.invoke("search-disc-best-matches", { title, barcode, artistName }) as Promise<DiscInfo[] | null>
+    },
+    artistNameAutocomplete: async (artistName: string) => {
+        return ipc.invoke("artist-name-autocomplete", { artistName }) as Promise<Artist[] | null>
+    },
+    labelNameAutocomplete: async (labelName: string) => {
+        return ipc.invoke("label-name-autocomplete", { labelName }) as Promise<LabelInfo[] | null>
+    },
+    createDisc: async (disc: Disc) => {
+        return ipc.invoke("create-disc", { disc }) as Promise<number>
+    },
+    createArtist: async (artist: Artist) => {
+        return ipc.invoke("create-artist", { artist }) as Promise<void>
+    },
+    createLabel: async (label: LabelInfo) => {
+        return ipc.invoke("create-label", { label }) as Promise<void>
+    },
+    removeTrack: async (trackId: number) => {
+        return ipc.invoke("remove-track", { trackId }) as Promise<void>
+    },
+    removeDisc: async (discId: number) => {
+        return ipc.invoke("remove-disc", { discId }) as Promise<void>
+    }
 }
 
 export type Api = typeof api;

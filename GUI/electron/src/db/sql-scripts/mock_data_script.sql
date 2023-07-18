@@ -26,13 +26,14 @@ INSERT INTO artist_role (role_name) VALUES
     ('Bassist'),
     ('Drummer'),
     ('Keyboardist'),
-    ('DJ'),
     ('Producer'),
-    ('Backup Singer');
-
+    ('Writer');
 INSERT INTO image_type (type_name) VALUES
     ('Front'),
-    ('Back');
+    ('Back'),
+    ('Disc'),
+    ('Booklet'),
+    ('Other');
 
 INSERT INTO disc_genre (genre_name) VALUES
     ('Rock'),
@@ -42,14 +43,16 @@ INSERT INTO disc_genre (genre_name) VALUES
     ('Hip Hop'),
     ('Electronic'),
     ('Classical'),
-    ('Country');
+    ('Country'),
+    ('Indie'),
+    ('Folk'),
+    ('Rap');
 
 INSERT INTO disc_format (format_name) VALUES
     ('Vinyl'),
     ('CD'),
     ('Cassette'),
     ('Digital');
-
 INSERT INTO artist (stage_name, artist_name) VALUES
     ('Freddie Mercury', 'Freddie Mercury'),
     ('John Lennon', 'John Lennon'),
@@ -67,7 +70,7 @@ INSERT INTO label (label_name) VALUES
     ('Columbia Records');
 
 INSERT INTO collector (username, email) VALUES
-    ('test', 'test@test.com'),
+    ('test-user', 'test-user@example.com'),
     ('vinyljunkie', 'vinyljunkie@example.com'),
     ('cdcollector', 'cdcollector@example.com'),
     ('metalhead88', 'metalhead88@example.com');

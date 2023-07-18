@@ -21,6 +21,10 @@ const themeObject = {
         color: '#282f3e',
         name: 'tertiary'
     },
+    tertiaryDarker:  {
+        color: '#222733',
+        name: 'tertiary-darker'
+    },
     mainText: {
         color: '#f1f1f1',
         name: 'main-text'

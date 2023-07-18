@@ -1,22 +1,24 @@
 <script lang="ts">
-	import FaExclamationCircle from 'svelte-icons/fa/FaExclamationCircle.svelte'
-	import FaCheckCircle from 'svelte-icons/fa/FaCheckCircle.svelte'
-	import FaRegCircle from 'svelte-icons/fa/FaRegCircle.svelte'
-	type statusType = '' | 'correct' | 'wrong'
-	export let title = ''
-	export let value = ''
-	export let status: statusType = ''
-	export let style = ''
-	$: if (value === '') status = ''
-	export let type = 'text'
-	export let placeholder = ""
-	export let hideStatus = true
+	import FaExclamationCircle from 'svelte-icons/fa/FaExclamationCircle.svelte';
+	import FaCheckCircle from 'svelte-icons/fa/FaCheckCircle.svelte';
+	import FaRegCircle from 'svelte-icons/fa/FaRegCircle.svelte';
+	type statusType = '' | 'correct' | 'wrong';
+	export let title = '';
+	export let value = '';
+	export let status: statusType = '';
+	export let style = '';
+	export let outerStyle = '';
+	export let innerStyle = '';
+	$: if (value === '') status = '';
+	export let type = 'text';
+	export let placeholder = '';
+	export let hideStatus = true;
 	const setType = (node) => {
-		node.type = type
-	}
+		node.type = type;
+	};
 </script>
 
-<div class="input-wrapper">
+<div class="input-wrapper" style={outerStyle}>
 	{#if title}
 		<div>{title}</div>
 	{/if}
@@ -28,12 +30,9 @@
 			on:change
 			on:blur
 			placeholder={placeholder ?? title.toUpperCase()}
-			style={hideStatus 
-				? 'border:none;' 
-				: '' + value === '' 
-					? ' border: none;' 
-					: ''
-			}
+			style={`${
+				hideStatus ? 'border:none;' : '' + value === '' ? ' border: none;' : ''
+			} ${innerStyle}`}
 		/>
 		{#if !hideStatus}
 			<div class={status + ' icon-wrapper'}>

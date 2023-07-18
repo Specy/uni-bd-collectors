@@ -43,6 +43,8 @@
     "electron-squirrel-startup": "^1.0.0",
     "mysql2": "^3.5.1",
     "semver": "^7.5.4",
+    "svelte-autocomplete": "^0.0.4",
+    "svelte-typeahead": "^4.4.1",
     "undici": "^5.22.1"
   },
   "devDependencies": {

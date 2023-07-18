@@ -2,6 +2,7 @@
 	import Button from '$cmp/buttons/Button.svelte';
 import type { Disc } from '$common/types/CollectorsTypes.js';
 	import { toFormattedTime } from '$lib/utils.js';
+	import { userStore } from '$stores/userStore.js';
 	import type { PageData } from './$types.js';
 	export let data: PageData;
 	$: disc = data.props.disc as Disc;
@@ -22,7 +23,7 @@ import type { Disc } from '$common/types/CollectorsTypes.js';
 				{disc.title}
 			</h1>
 			<div>
-				{disc.artist} - {disc.label}
+				{disc.artist.stageName} - {disc.label.name}
 			</div>
 			<div>
 				{disc.year} - {disc.genre}
@@ -47,7 +48,6 @@ import type { Disc } from '$common/types/CollectorsTypes.js';
 				<div>
 					{track.title}
 				</div>
-
 				<div>
 					{toFormattedTime(track.duration)}
 				</div>
@@ -86,7 +86,7 @@ import type { Disc } from '$common/types/CollectorsTypes.js';
 		box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.2);
 	}
 	.main-image {
-		max-width: 20rem;
+		width: 20rem;
 		aspect-ratio: 1;
 		object-fit: cover;
 		border-radius: 0.3rem;

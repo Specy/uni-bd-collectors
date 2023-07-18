@@ -41,18 +41,20 @@ function createPromptStore() {
     }
     function answer(value: string | boolean) {
         current.resolve?.(value)
-        cancel()
+        reset()
     }
     function cancel() {
         update(s => {
-            s.promise = null
-            s.resolve = null
+            s.resolve?.(null)
             return s
         })
         reset()
     }
+
     function reset() {
         update(s => {
+            s.promise = null
+            s.resolve = null
             s.question = ''
             s.placeholder = ''
             s.cancellable = true

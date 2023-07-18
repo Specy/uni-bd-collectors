@@ -7,8 +7,8 @@
 	import { toast } from '$stores/toastStore';
 	import { userStore } from '$stores/userStore';
 
-	let username = 'test';
-	let email = 'test@test.com';
+	let username = 'test-user';
+	let email = 'test-user@example.com';
 	async function login() {
 		try {
 			const user = await window.api.loginUser(username, email);

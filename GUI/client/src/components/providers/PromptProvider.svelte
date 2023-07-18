@@ -27,7 +27,7 @@
 
         <div class="prompt-row">
 			{#if $Prompt.type === PromptType.Text}
-				<Button cssVar='secondary' disabled={!$Prompt.cancellable}>
+				<Button cssVar='secondary' disabled={!$Prompt.cancellable} on:click={() => Prompt.cancel()}>
 					Cancel
 				</Button>
 				<Button on:click={() => Prompt.answer(value)}>

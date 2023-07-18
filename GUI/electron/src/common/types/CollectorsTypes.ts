@@ -5,9 +5,11 @@ export type DiscInfo = {
     genre: string,
     format: string,
     label: string,
+    labelId: number,
     quantity: number,
     barcode?: string,
     artist: string,
+    artistId: number,
     conservationStatus: string,
     collectionId: number,
 }
@@ -15,8 +17,13 @@ export type DiscInfo = {
 export type Disc = DiscInfo & {
     tracks: TrackInfo[],
     images: Image[],
+    label: LabelInfo,
+    artist: Artist,
 }
-
+export type LabelInfo = {
+    id: number,
+    name: string,
+}
 export type TrackInfo = {
     id: number,
     title: string,
@@ -47,6 +54,13 @@ export type Collector = {
 export type Image = {
     kind: string,
     src: string,
+}
+
+export type PopulationOptions = {
+    genres: string[],
+    formats: string[],
+    statuses: string[],    
+    imageTypes: string[],
 }
 
 export type CollectionInfo = {

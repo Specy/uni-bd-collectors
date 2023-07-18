@@ -26,6 +26,7 @@ CREATE PROCEDURE create_collection(
 BEGIN
     INSERT INTO collection(collection_name, collector_id, is_public)
     VALUES (collection_name, collector_id, is_public);
+    SELECT LAST_INSERT_ID() AS collection_id;
 END$
 
 
@@ -45,6 +46,7 @@ CREATE PROCEDURE create_disc(
 BEGIN 
     INSERT INTO disc(title, barcode, release_year, number_of_copies, genre, disc_format, label_id, collection_id, disc_status, artist_id)
     VALUES (title, barcode, release_year, number_of_copies, genre, disc_format, label_id, collection_id, disc_status, artist_id);
+    SELECT LAST_INSERT_ID() AS disc_id;
 END$
 
 CREATE PROCEDURE create_track(
@@ -128,7 +130,9 @@ BEGIN
         d.disc_status AS disc_status,
         a.stage_name AS artist_stage_name,
         l.label_name AS label_name,
-        d.collection_id AS collection_id
+        d.collection_id AS collection_id,
+        l.id AS label_id,
+        a.id AS artist_id
     FROM disc d
     JOIN artist a ON d.artist_id = a.id
     JOIN label l ON d.label_id = l.id
@@ -179,7 +183,9 @@ BEGIN
         d.disc_status AS disc_status,
         a.stage_name AS artist_stage_name,
         l.label_name AS label_name,
-        d.collection_id AS collection_id
+        d.collection_id AS collection_id,
+        l.id AS label_id,
+        a.id AS artist_id
     FROM disc d
     JOIN artist a ON d.artist_id = a.id
     JOIN label l ON d.label_id = l.id
@@ -345,18 +351,20 @@ BEGIN
         d.disc_status AS disc_status,
         a.stage_name AS artist_stage_name,
         l.label_name AS label_name,
-        d.collection_id AS collection_id
+        d.collection_id AS collection_id,
+        l.id AS label_id,
+        a.id AS artist_id
     FROM disc d
     JOIN artist a ON d.artist_id = a.id
     JOIN label l ON d.label_id = l.id
-    WHERE d.barcode = barcode OR d.title = title
+    WHERE d.barcode = barcode OR d.title LIKE CONCAT('%', title, '%')
     ORDER BY CASE 
         WHEN d.barcode = barcode THEN 1
-        WHEN d.title = title AND a.stage_name != artist_stage_name THEN 2
-        WHEN d.title = title AND a.stage_name = artist_stage_name THEN 3
+        WHEN d.title LIKE CONCAT('%', title, '%') AND a.stage_name NOT LIKE CONCAT('%', artist_stage_name, '%') THEN 2
+        WHEN d.title LIKE CONCAT('%', title, '%') AND a.stage_name LIKE CONCAT('%', artist_stage_name, '%') THEN 3
         ELSE 4
     END
-    LIMIT 50;
+    LIMIT 25;
 END$
 
 DELIMITER ;
@@ -376,7 +384,20 @@ DROP PROCEDURE IF EXISTS set_collector_in_collection;
 DROP PROCEDURE IF EXISTS add_collector;
 DROP PROCEDURE IF EXISTS get_track_contributors;
 DROP PROCEDURE IF EXISTS get_track;
-
+DROP PROCEDURE IF EXISTS get_genres;
+DROP PROCEDURE IF EXISTS get_formats;
+DROP PROCEDURE IF EXISTS get_conditions;
+DROP PROCEDURE IF EXISTS get_image_types;
+DROP PROCEDURE IF EXISTS get_artist_autocomplete;
+DROP PROCEDURE IF EXISTS get_label_autocomplete;
+DROP PROCEDURE IF EXISTS create_label;
+DROP PROCEDURE IF EXISTS create_artist;
+DROP PROCEDURE IF EXISTS create_image;
+DROP PROCEDURE IF EXISTS create_track;
+DROP PROCEDURE IF EXISTS get_artist_by_stage_name;
+DROP PROCEDURE IF EXISTS remove_track;
+DROP PROCEDURE IF EXISTS remove_disk;
+DROP PROCEDURE IF EXISTS get_label;
 
 
 CREATE PROCEDURE get_collections_of_collector(
@@ -462,7 +483,9 @@ BEGIN
         d.disc_status AS disc_status,
         a.stage_name AS artist_stage_name,
         l.label_name AS label_name,
-        d.collection_id AS collection_id
+        d.collection_id AS collection_id,
+        l.id AS label_id,
+        a.id AS artist_id
     FROM disc d
     JOIN artist a ON d.artist_id = a.id
     JOIN label l ON d.label_id = l.id
@@ -569,4 +592,134 @@ BEGIN
         t.disc_id AS disc_id
     FROM track t    
     WHERE t.id = track_id;
+END$
+
+-- ----------------------------------
+CREATE PROCEDURE get_genres()
+BEGIN
+    SELECT
+        g.genre_name AS genre_name
+    FROM disc_genre g;
+END$
+-- ----------------------------------
+CREATE PROCEDURE get_formats()
+BEGIN
+    SELECT
+        f.format_name AS format_name
+    FROM disc_format f;
+END$
+-- ----------------------------------
+CREATE PROCEDURE get_conditions()
+BEGIN
+    SELECT
+        c.condition_name AS condition_name
+    FROM condition_status c;
+END$
+-- ----------------------------------
+CREATE PROCEDURE get_image_types()
+BEGIN
+    SELECT
+        i.type_name AS image_type_name
+    FROM image_type i;
+END$
+
+-- ----------------------------------
+CREATE PROCEDURE get_artist_autocomplete(
+    IN search_text VARCHAR(100)
+)
+BEGIN
+    SELECT
+        a.stage_name AS artist_stage_name,
+        a.artist_name AS artist_name,
+        a.id AS artist_id
+    FROM artist a
+    WHERE a.stage_name LIKE CONCAT('%', search_text, '%') OR a.artist_name LIKE CONCAT('%', search_text, '%');
+END$
+-- ----------------------------------
+CREATE PROCEDURE get_label_autocomplete(
+    IN search_text VARCHAR(100)
+)
+BEGIN
+    SELECT
+        l.label_name AS label_name,
+        l.id AS label_id
+    FROM label l
+    WHERE l.label_name LIKE CONCAT('%', search_text, '%');
+END$
+-- ----------------------------------
+CREATE PROCEDURE create_label(
+    IN label_name VARCHAR(100)
+)
+BEGIN
+    INSERT IGNORE INTO label(label_name)
+    VALUES (label_name);
+END$
+-- ----------------------------------
+CREATE PROCEDURE create_artist(
+    IN stage_name VARCHAR(100),
+    IN artist_name VARCHAR(100)
+)
+BEGIN
+    INSERT IGNORE INTO artist(stage_name, artist_name)
+    VALUES (stage_name, artist_name);
+END$
+-- ----------------------------------
+CREATE PROCEDURE create_image(
+    IN image_path VARCHAR(200),
+    IN image_format VARCHAR(40),
+    IN disc_id INT
+)
+BEGIN
+    INSERT INTO image(image_path, image_format, disc_id)
+    VALUES (image_path, image_format, disc_id);
+END$
+-- ----------------------------------
+CREATE PROCEDURE create_track(
+    IN track_length INT,
+    IN title VARCHAR(100),
+    IN disc_id INT
+)
+BEGIN
+    INSERT INTO track(track_length, title, disc_id)
+    VALUES (track_length, title, disc_id);
+END$
+-- ----------------------------------
+CREATE PROCEDURE get_artist_by_stage_name(
+    IN stage_name VARCHAR(100)
+)
+BEGIN
+    SELECT
+        a.id AS artist_id,
+        a.stage_name AS artist_stage_name,
+        a.artist_name AS artist_name
+    FROM artist a
+    WHERE a.stage_name = stage_name;
+END$
+-- ----------------------------------
+CREATE PROCEDURE remove_track(
+    IN track_id INT
+)
+BEGIN
+    DELETE FROM track
+    WHERE track.id = track_id;
+END$
+-- ----------------------------------
+CREATE PROCEDURE remove_disk(
+    IN disk_id INT
+)
+BEGIN
+    DELETE FROM disc
+    WHERE disc.id = disk_id;
+END$
+
+-- ----------------------------------
+CREATE PROCEDURE get_label(
+    IN label_id INT
+)
+BEGIN
+    SELECT
+        l.id AS label_id,
+        l.label_name AS label_name
+    FROM label l
+    WHERE l.id = label_id;
 END$

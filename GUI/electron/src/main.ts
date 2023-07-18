@@ -146,6 +146,39 @@ async function setUpIpc(win: BrowserWindow, db: CollectorsDb) {
     ipc.handle('get-track', async (e, { trackId }) => {
         return await db.getTrack(trackId)
     })
+    ipc.handle("create-collection", async (e, { name, isPublic, ownerId }) => {
+        return await db.createCollection(name, ownerId, isPublic)
+    })
+    ipc.handle('get-population-options', (e) => {
+        return db.getPopulationOptions()
+    })
+    ipc.handle('seach-disc', async (e, { title, artistName, searchInOwnedDiscs, searchInSharedDiscs, searchInPublicDiscs }) => {
+        return await db.searchDisc(title, artistName, searchInOwnedDiscs, searchInSharedDiscs, searchInPublicDiscs)
+    })
+    ipc.handle('search-disc-best-matches', async (e, { title, barcode, artistName }) => {
+        return await db.findBestDiscMatches(title, barcode, artistName)
+    })
+    ipc.handle('artist-name-autocomplete', async (e, { artistName }) => {
+        return await db.getArtistsAutocomplete(artistName)
+    })
+    ipc.handle('label-name-autocomplete', async (e, { labelName }) => {
+        return await db.getLabelsAutocomplete(labelName)
+    })
+    ipc.handle('create-disc', async (e, { disc }) => {
+        return await db.createDisc(disc)
+    })
+    ipc.handle('create-artist', async (e, { artist }) => {
+        return await db.createArtist(artist)
+    })
+    ipc.handle('create-label', async (e, { label }) => {
+        return await db.createLabel(label)
+    })
+    ipc.handle('remove-track', async (e, { trackId }) => {
+        return await db.removeTrack(trackId)
+    })  
+    ipc.handle('remove-disc', async (e, { discId }) => {
+        return await db.removeDisc(discId)
+    })
     win.on("maximize", () => win.webContents.send("maximize-change", true))
     win.on("unmaximize", () => win.webContents.send("maximize-change", false))
 }
