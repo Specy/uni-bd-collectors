@@ -392,7 +392,6 @@ DROP PROCEDURE IF EXISTS get_label_autocomplete;
 DROP PROCEDURE IF EXISTS create_label;
 DROP PROCEDURE IF EXISTS create_artist;
 DROP PROCEDURE IF EXISTS create_image;
-DROP PROCEDURE IF EXISTS create_track;
 DROP PROCEDURE IF EXISTS get_artist_by_stage_name;
 DROP PROCEDURE IF EXISTS remove_track;
 DROP PROCEDURE IF EXISTS remove_disc;
@@ -671,16 +670,6 @@ CREATE PROCEDURE create_image(
 BEGIN
     INSERT INTO image(image_path, image_format, disc_id)
     VALUES (image_path, image_format, disc_id);
-END$
--- ----------------------------------
-CREATE PROCEDURE create_track(
-    IN track_length INT,
-    IN title VARCHAR(100),
-    IN disc_id INT
-)
-BEGIN
-    INSERT INTO track(track_length, title, disc_id)
-    VALUES (track_length, title, disc_id);
 END$
 -- ----------------------------------
 CREATE PROCEDURE get_artist_by_stage_name(

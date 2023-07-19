@@ -48,7 +48,12 @@ export class CollectorsDb {
                 await this.db.query(databaseCreation)
                 await this.db.query(removeDelimiter(triggersCreation))
                 await this.db.query(removeDelimiter(proceduresCreation))
-                if (includeMock) await this.db.query(mockDataCreation)
+                try{
+                    if (includeMock) await this.db.query(mockDataCreation)
+                }catch(e){
+                    console.error("Error adding mock data:")
+                    console.error(e)
+                }
                 this.isInitialized = true
                 this.initPromise = null
                 resolve()

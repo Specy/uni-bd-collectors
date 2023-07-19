@@ -1,104 +1,6 @@
-# Traccia 
+CREATE DATABASE IF NOT EXISTS collectors;
+USE collectors;
 
-Il database *Collectors* memorizza informazioni relative a collezioni di dischi (anche se lo stesso tipo di database potrebbe adattarsi quasi a qualunque tipo di collezione, useremo i dischi come caso di studio in modo da poter aggiungere più dettagli alla specifica).
-
-Nel database andranno prima di tutto registrati i dati (saranno sufficienti nickname e indirizzo email) relativi ai *collezionisti* , e poi i dati relativi alle loro *collezioni* di dischi (dovete prevedere che ogni collezionista possa creare più collezioni, ciascuna con un nome distinto). Per ogni *disco* in una collezione, dovranno essere specificati gli autori, il titolo, l'anno di uscita, l'etichetta (casa editrice), il genere (scelto da una lista predefinita di generi musicali), lo stato di conservazione dell'oggetto (scelto da una lista predefinita), il formato (vinile, CD, digitale,...), il numero di barcode, se disponibile (i codici a barre garantiscono l'identificazione univoca dell'elemento), e poi ovviamente la lista delle *tracce*, ciascuna con titolo, durata, ed eventuali informazioni su compositore ed esecutore (cantante, musicista), se diverso da quelli dell'intero disco. Infine, ogni disco potrebbe essere associato a una o più immagini (copertina, retro, eventuali facciate interne o libretti, ecc.). Insomma, cercate di essere il più realistici possibile.
-
-Per ogni disco, il collezionista potrà inoltre indicare l'eventuale numero di *doppioni* a sua disposizione (spesso si hanno più copie dello stesso disco, magari a seguito di scambi, e magari anche perché se ne prevede la rivendita).
-
-I collezionisti potranno decidere di *condividere* la propria collezione con specifici utenti o in maniera pubblica. Ogni collezione avrà quindi associato un flag privato/pubblico e la lista di collezionisti con i quali è stata condivisa.
-
-Ci sono indubbiamente svariati vincoli che possono essere
-applicati ai contenuti di questa base di dati. L'individuazione dei vincoli e
-la loro implementazione (con vincoli sulle tabelle, trigger o quantomeno
-definendo il codice e le query necessari a effettuarne il controllo)
-costituiscono un requisito importante per lo sviluppo di un progetto
-realistico, e ne verrà tenuto conto durante la valutazione finale.
-
-
-# Laboratorio di Basi di Dati:  *Progetto Collectors*
-
-**Gruppo di lavoro**: 
-
-| Matricola | Nome  |  Cognome   | Contributo al progetto |
-|:---------:|:-----:|:----------:|:----------------------:|
-|  279061   | Enrico | Menichelli | Si                       |
-
-**Data di consegna del progetto**: 19/07/2023
-
----
-
-## Analisi della traccia e dominio
-
-Di seguito sono riportate le entità scoperte a seguito dell'analisi della traccia. 
-Il compito del progetto è quello di permettere a **Collezionisti** di tenere traccia delle proprie collezioni di dischi, che possono essere anche condivise con altri. Ogni collezione contiene una lista di dischi, dove ogni disco posseduto da un collezionista specifica il proprio formato, lo stato di conservazione e il numero di copie che possiede. Ogni disco contiene varie informazioni, immagini e tracce.
-
-- **Collezionista**: Un utente identificato tramite il proprio nickname e una mail, possiede varie collezioni e può far parte di collezioni di altri collezionisti.
-- **Collezione**: Una lista di dischi appartenenti a questa collezione, incluso il nome della collezione e se è pubblica o meno. La collezione può essere condivisa con altri collezionisti.
-- **Disco**: Contiene i dettagli del disco come il nome, l'autore, il titolo, l'anno di uscita, l'etichetta, il genere, lo stato di conservazione, il formato, il barcode se disponibile, una lista di tracce, e delle immagini.
-- **Immagine**: L'immagine di un disco e la sua tipologia
-- **Traccia**: Una canzone, contiene un titolo, durata, e opzionalmente informazioni sul contributo da parte di artisti.
-- **Artista**: L'artista che produce un disco o collabora in una canzone, con il proprio nome d'arte
-
----
-
-## Implementazioni analizzate
-
-Sono state analizzate due implementazioni diverse, una più restrittiva e una più permissiva:
-
-L'implementazione più **restrittiva** permette ai collezionisti di creare un database univoco e condiviso da tutti, un disco (e tutti i suoi attributi strutturati) specifico è quindi rappresentato in maniera univoca, e ogni possedimento da parte di un collezionista ne rappresenta solo il formato e lo stato del disco. 
-Ha il pro di rimuovere eventuale ridondanza nel database, ma ha il contro di non poter essere modificabile da parte dei collezionisti, infatti saranno obbligati ad usare le informazioni sul disco già presente, o crearne uno nuovo con simili informazioni, quindi annullando i vantaggi precedenti.
-
-L'implementazione più **permissiva** (quella scelta) permette la ridondanza dei dati dei dischi, tracce, immagini, etc..., a favore di un possesso di dati da parte dei collezionisti, infatti, essendo tutti i dischi potenzialmente diversi da quelli già presenti, permette ad ogni collezionista di modificare a piacimento il proprio disco, e con funzionalità da parte dell'interfaccia grafica, si facilita l'inserimento di dischi già esistenti, "clonandoli". 
-
----
-
-## Progettazione concettuale
-
-![[conceptual-er.drawio.svg]]
-
-### Formalizzazione dei vincoli non esprimibili nel modello ER
-
-Tutti gli attributi sono NOT NULL ad eccezione di "barcode" che può esserlo in caso che non sia conosciuto. In oltre nelle entità:
-- **Collezionista**: Sia email che nickname sono unici 
-- **Collezione**: Il nome di una collezione è unico sul singolo collezionista e una collezione non può essere condivisa con se stessi
-
----
-
-## Progettazione logica
-
-![[logical-er.drawio.svg]]
-
-- Sono state create delle nuove entità a partire dagli attributi **genere**, **stato**, **ruolo**, **tipologia**, **formato**, per rendere più semplice l'aggiunta di nuovi, la eventuale modifica del nome e l'aggiunta di più informazioni se necessario.
-- Il contributo da parte di un artista è stato generalizzato in una nuova entità "Contributo brano" che specifica il contributo di un artista tramite un certo ruolo (tipo cantante, scrittore, chitarrista etc...)
-- La visibilità di una collezione è stata modificata per un valore booleano "isPubblico"
-- Anche se abbastanza grande, non si è scelto la suddivisione della entità "Disco" dato che tutte le informazioni del disco verranno sempre usate nelle query.
-
-
-### Traduzione del modello ER nel modello relazionale
-
-- **Collezionista**(<u>ID</u>,  username, email) 
-- **Collezione**(<u>ID</u>,nome, _IDCollezionista_, isPubblico) 
-- **CollezioneCondivisa**(<u style="font-style: italic">IDCollezione</u>, <u style="font-style: italic">IDCollezionista</u>)
-- **Etichetta**(<u>ID</u>, nome) 
-- **Traccia**(<u>ID</u>, _IDDisco_,  durata, titolo) 
-- **Artista**(<u>ID</u>, nomeArte, nome) 
-- **Immagine**(<u>ID</u>, _IDBrano_, file, _tipoImmagine_) 
-- **ContributoBrano**(<u style="font-style: italic">IDBrano</u>, <u style="font-style: italic">tipoContributo</u>, <u style="font-style: italic">artista</u>) 
-- **Disco**(<u>ID</u>, _IDCollezione_, titolo, barcode, annoDiUscita, numeroCopie, _genere_, _formato_, _IDEtichetta_,  _statoDisco_, _IDArtista_)
-- **Formato**(<u>nome</u>) 
-- **Genere**(<u>nome</u>) 
-- **TipologiaImmagine**(<u>nome</u>) 
-- **RuoloArtista**(<u>nome</u>) 
-- **StatoCondizione**(<u>nome</u>) 
-
----
-
-## Progettazione fisica
-
-### Implementazione del modello relazionale
-
-```sql
 CREATE TABLE IF NOT EXISTS condition_status(
 	condition_name VARCHAR(40) PRIMARY KEY 
 );
@@ -133,7 +35,6 @@ CREATE TABLE IF NOT EXISTS collection(
     collection_name VARCHAR(100) NOT NULL, #collectin name is unique for the owner
     collector_id INT NOT NULL,
     is_public BOOLEAN NOT NULL,
-    
     FOREIGN KEY (collector_id) REFERENCES collector(id)
 		ON DELETE CASCADE
         ON UPDATE CASCADE
@@ -150,7 +51,6 @@ CREATE TABLE IF NOT EXISTS disc(
     collection_id INT NOT NULL, 
     disc_status varchar(40) NOT NULL,
     artist_id INT NOT NULL,
-    
     FOREIGN KEY (artist_id) REFERENCES artist(id)
 		ON UPDATE CASCADE
         ON DELETE RESTRICT,
@@ -175,7 +75,6 @@ CREATE TABLE IF NOT EXISTS image(
     image_path VARCHAR(200) NOT NULL,
     image_format VARCHAR(40),
     disc_id INT NOT NULL,
-    
     FOREIGN KEY (disc_id) REFERENCES disc(id)
         ON UPDATE CASCADE
         ON DELETE CASCADE,
@@ -186,7 +85,6 @@ CREATE TABLE IF NOT EXISTS image(
 CREATE TABLE IF NOT EXISTS shared_collection(
 	collection_id INT NOT NULL,
     collector_id INT NOT NULL,
-    
     FOREIGN KEY (collection_id) REFERENCES collection(id)
 		ON UPDATE CASCADE
         ON DELETE CASCADE,
@@ -200,7 +98,6 @@ CREATE TABLE IF NOT EXISTS track(
     track_length INT NOT NULL,
     title VARCHAR(100) NOT NULL,
 	disc_id INT NOT NULL,
-	
     FOREIGN KEY (disc_id) REFERENCES disc(id)
 		ON UPDATE CASCADE
         ON DELETE CASCADE
@@ -221,11 +118,48 @@ CREATE TABLE IF NOT EXISTS track_contribution(
         ON DELETE CASCADE,
 	PRIMARY KEY (track_id, artist_id, contribution_type)
 );
-```
 
-Script per aggiunta di dati al database:
+DELIMITER $
 
-```sql
+CREATE TRIGGER check_collection_uniqueness BEFORE INSERT ON collection FOR EACH ROW
+BEGIN
+	DECLARE number_of_collections INT;
+    DECLARE collector_name varchar(100);
+    DECLARE exists_collection BOOLEAN;
+    DECLARE error_message varchar(200);
+	SET exists_collection = (
+		SELECT COUNT(*)
+		FROM collection c
+        WHERE c.collector_id = NEW.collector_id AND c.collection_name = NEW.collection_name
+    );
+	IF (number_of_collections > 0) THEN
+		SET collector_name = (
+			SELECT c.username
+            FROM collector c
+            WHERE c.id = NEW.collector_id
+        );
+        SET error_message = CONCAT("Collection: ", NEW.collection_name, " Already exists for collector: ", collector_name);
+		SIGNAL SQLSTATE "45000" SET MESSAGE_TEXT = error_message;
+    END IF;
+END$
+
+CREATE TRIGGER check_collection_share BEFORE INSERT ON shared_collection FOR EACH ROW
+BEGIN
+    DECLARE owner_id INT;
+    DECLARE error_message VARCHAR(200);
+    SET owner_id = (
+        SELECT c.collector_id
+        FROM collection c
+        WHERE c.id = NEW.collection_id
+    );
+    IF (owner_id = NEW.collector_id) THEN
+        SET error_message = CONCAT("Collector: ", NEW.collector_id, " is already the owner of collection: ", NEW.collection_id);
+        SIGNAL SQLSTATE "45000" SET MESSAGE_TEXT = error_message;
+    END IF;
+END$
+
+DELIMITER ;
+
 INSERT INTO condition_status (condition_name) VALUES
     ('New'),
     ('Good'),
@@ -240,7 +174,6 @@ INSERT INTO artist_role (role_name) VALUES
     ('Keyboardist'),
     ('Producer'),
     ('Writer');
-    
 INSERT INTO image_type (type_name) VALUES
     ('Front'),
     ('Back'),
@@ -266,7 +199,6 @@ INSERT INTO disc_format (format_name) VALUES
     ('CD'),
     ('Cassette'),
     ('Digital');
-    
 INSERT INTO artist (stage_name, artist_name) VALUES
     ('Freddie Mercury', 'Freddie Mercury'),
     ('John Lennon', 'John Lennon'),
@@ -296,6 +228,7 @@ INSERT INTO collection (collection_name, collector_id, is_public) VALUES
     ('Classic Rock', 2, 1),
     ('Madonna', 2, 0);
 
+
 INSERT INTO shared_collection (collection_id, collector_id) VALUES
     (1, 2),
     (2, 1),
@@ -319,6 +252,9 @@ INSERT INTO image (image_path, image_format, disc_id) VALUES
     ('https://picsum.photos/500/500', 'Back', 4),    
     ('https://picsum.photos/500/500', 'Front', 4),
     ('https://picsum.photos/500/500', 'Back', 5);
+
+
+
 
 INSERT INTO track (track_length, title, disc_id) VALUES
     (355, 'Bohemian Rhapsody', 1),
@@ -353,54 +289,10 @@ INSERT INTO track_contribution (track_id, artist_id, contribution_type) VALUES
     (10, 5, 'Lead Singer'),
     (11, 6, 'Lead Singer'),
     (12, 6, 'Lead Singer');
-```
 
-### Implementazione dei vincoli
+DELIMITER $
 
-```sql
-CREATE TRIGGER check_collection_uniqueness BEFORE INSERT ON collection FOR EACH ROW
-BEGIN
-	DECLARE number_of_collections INT;
-    DECLARE collector_name varchar(100);
-	SET exists_collection = (
-		SELECT COUNT(*)
-		FROM collection c
-        WHERE c.collector_id = NEW.collector_id AND c.collection_name = NEW.collection_name
-    );
-	IF (number_of_collections > 0) THEN
-		SET collector_name = (
-			SELECT c.username
-            FROM collector c
-            WHERE c.id = NEW.collector_id
-        );
-        SET error_message = CONCAT("Collection: ", NEW.collection_name, " Already exists for collector: ", collector_name);
-		SIGNAL SQLSTATE "45000" SET MESSAGE_TEXT = error_message;
-    END IF;
-END$
-
-CREATE TRIGGER check_collection_share BEFORE INSERT ON shared_collection FOR EACH ROW
-BEGIN
-    DECLARE owner_id INT;
-    SET owner_id = (
-        SELECT c.collector_id
-        FROM collection c
-        WHERE c.id = NEW.collection_id
-    );
-    IF (owner_id = NEW.collector_id) THEN
-        SET error_message = CONCAT("Collector: ", NEW.collector_id, " is already the owner of collection: ", NEW.collection_id);
-        SIGNAL SQLSTATE "45000" SET MESSAGE_TEXT = error_message;
-    END IF;
-END$
-```
-
-
-### Implementazione funzionalità richieste
-
-#### Funzionalità 1
-
->Inserimento di una nuova collezione.
-
-```sql
+-- FN 1 
 CREATE PROCEDURE create_collection(
 	IN collection_name VARCHAR(100),
     IN collector_id INT,
@@ -411,14 +303,9 @@ BEGIN
     VALUES (collection_name, collector_id, is_public);
     SELECT LAST_INSERT_ID() AS collection_id;
 END$
-```
 
 
-#### Funzionalità 2
-
-> Aggiunta di dischi a una collezione e di tracce a un disco.
-
-```sql
+-- FN 2
 CREATE PROCEDURE create_disc(
 	IN title VARCHAR(100),
     IN barcode VARCHAR(50),
@@ -436,7 +323,7 @@ BEGIN
     VALUES (title, barcode, release_year, number_of_copies, genre, disc_format, label_id, collection_id, disc_status, artist_id);
     SELECT LAST_INSERT_ID() AS disc_id;
 END$
--- ----------------------------------------------
+
 CREATE PROCEDURE create_track(
     IN track_length INT,
     IN title VARCHAR(100),
@@ -446,13 +333,9 @@ BEGIN
     INSERT INTO track(track_length, title, disc_id)
     VALUES (track_length, title, disc_id);
 END$
-```
 
-#### Funzionalità 3
+-- FN 3 
 
-> Modifica dello stato di pubblicazione di una collezione (da privata a pubblica e viceversa) e aggiunta di nuove condivisioni a una collezione.
-
-```sql
 CREATE PROCEDURE set_collection_visibility(
     IN collection_id INT,
     IN is_public BOOLEAN
@@ -462,7 +345,7 @@ BEGIN
     SET c.is_public = is_public
     WHERE c.id = collection_id;
 END$
--- ----------------------------------------------
+
 CREATE PROCEDURE add_contributor_to_collection(
     IN collection_id INT,
     IN collector_username VARCHAR(100)
@@ -485,13 +368,9 @@ BEGIN
     VALUES (collection_id, collector_id);
 
 END$
-```
 
-#### Funzionalità 4
+-- FN 4 
 
-> Rimozione di un disco da una collezione.
-
-```sql
 CREATE PROCEDURE remove_disc_from_collection(
     IN disc_id INT
 )
@@ -499,13 +378,9 @@ BEGIN
     DELETE FROM disc d
     WHERE d.id = disc_id;
 END$
-```
 
-#### Funzionalità 5
+-- FN 5 
 
-> Rimozione di una collezione
-
-```sql
 CREATE PROCEDURE remove_collection(
     IN collection_id INT
 )  
@@ -513,13 +388,8 @@ BEGIN
     DELETE FROM collection c
     WHERE c.id = collection_id;
 END$
-```
 
-#### Funzionalità 6
-
-> Lista di tutti i dischi in una collezione
-
-```sql
+-- FN 6 
 CREATE PROCEDURE get_discs_of_collection(
     IN collection_id INT
 )
@@ -543,13 +413,9 @@ BEGIN
     JOIN label l ON d.label_id = l.id
 	WHERE d.collection_id = collection_id;
 END$
-```
 
-#### Funzionalità 7
 
-> Track list di un disco
-
-```sql
+-- FN 7 
 CREATE PROCEDURE get_disc_tracks(
     IN disc_id INT
 )
@@ -562,13 +428,9 @@ BEGIN
     FROM track t
     WHERE t.disc_id = disc_id;
 END$
-```
 
-#### Funzionalità 8
 
-> Ricerca di dischi in base a nomi di autori/compositori/interpreti e/o titoli. Si potrà decidere di includere nella ricerca le collezioni di un certo collezionista e/o quelle condivise con lo stesso collezionista e/o quelle pubbliche. _(Suggerimento: potete realizzare diverse query in base alle varie combinazioni di criteri di ricerca. Usate la UNION per unire i risultati delle ricerche effettuate sulle collezioni private, condivise e pubbliche)_
-
-```sql
+-- FN 8 
 CREATE PROCEDURE search_discs(
     IN search_disc_title VARCHAR(100),
     IN search_artist_stage_name VARCHAR(100),
@@ -613,13 +475,10 @@ BEGIN
             (search_in_public_collections AND c.is_public = TRUE)
         );
 END$
-```
 
-#### Funzionalità 9
 
-> Verifica della visibilità di una collezione da parte di un collezionista. _(Suggerimento: una collezione è visibile a un collezionista se è sua, condivisa con lui o pubblica)_
 
-```sql
+-- FN 9 
 CREATE FUNCTION is_collection_visible_by_collector(
     collection_id INT,
     collector_id INT
@@ -648,13 +507,8 @@ BEGIN
         RETURN is_visible;
     END IF;
 END$
-```
 
-#### Funzionalità 10
-
-> Numero dei brani (tracce di dischi) distinti di un certo autore (compositore, musicista) presenti nelle collezioni pubbliche.
-
-```sql
+-- FN 10 
 CREATE FUNCTION get_artist_id(
     artist_stage_name VARCHAR(100)
 )
@@ -668,7 +522,8 @@ BEGIN
     );
     RETURN artist_id;
 END$
--- ----------------------------------------------
+
+
 CREATE FUNCTION count_tracks_of_author_in_public_collections(
     artist_stage_name VARCHAR(100)
 )
@@ -697,13 +552,8 @@ BEGIN
         RETURN number_of_tracks;
     END IF;        
 END$
-```
 
-#### Funzionalità 11
-
-> Minuti totali di musica riferibili a un certo autore (compositore, musicista) memorizzati nelle collezioni pubbliche
-
-```sql
+-- FN 11 
 CREATE FUNCTION count_total_track_time_of_artist_in_public_collections(
     artist_stage_name VARCHAR(100)
 )
@@ -735,13 +585,9 @@ BEGIN
         RETURN total_track_time;
     END IF;
 END$
-```
 
-#### Funzionalità 12
+-- FN 12 
 
-> Statistiche (_una query per ciascun valore_): numero di collezioni di ciascun collezionista, numero di dischi per genere nel sistema
-
-```sql
 CREATE PROCEDURE aggregate_number_of_collections_per_collector()
 BEGIN
     SELECT
@@ -751,7 +597,7 @@ BEGIN
     RIGHT JOIN collector ON collector.id = c.collector_id
     GROUP BY collector.username;
 END$
--- ----------------------------------------------
+
 CREATE PROCEDURE aggregate_number_of_discs_per_genre()
 BEGIN
     SELECT
@@ -761,13 +607,8 @@ BEGIN
     RIGHT JOIN disc_genre g ON g.genre_name = d.genre
     GROUP BY g.genre_name;
 END$
-```
 
-#### Funzionalità 13
-
-> Dati un numero di barcode, un titolo e il nome di un autore, individuare tutti i dischi presenti nelle collezioni che sono più coerenti con questi dati (funzionalità utile, ad esempio, per individuare un disco già presente nel sistema prima di inserirne un doppione). L'idea è che il barcode è univoco, quindi i dischi con lo stesso barcode sono senz'altro molto coerenti, dopodichè è possibile cercare dischi con titolo simile e/o con l'autore dato, assegnando maggior punteggio di somiglianza a quelli che hanno più corrispondenze.
-
-```sql
+-- FN 13 
 CREATE PROCEDURE find_best_match_of_disc_from(
     IN barcode VARCHAR(50),
     IN title VARCHAR(100),
@@ -800,37 +641,322 @@ BEGIN
     END
     LIMIT 25;
 END$
-```
 
----
 
-## Interfaccia verso il database
+-- Other procedures for the GUI
 
-è stata creata un interfaccia grafica che implementa le query e le procedure descritte in precedenza (e molte altre) tramite l'uso del linguaggio [Typescript](https://www.typescriptlang.org/), [SvelteKit](https://kit.svelte.dev/) (un framework/linguaggio per la creazione di applicazioni web) e [Electron](https://www.electronjs.org/) con [Node.js](https://nodejs.org/en) per la creazione di un'applicazione desktop.
+CREATE PROCEDURE get_collections_of_collector(
+    IN collector_id INT
+)
+BEGIN
+    SELECT
+        c.id AS collection_id,
+        c.collection_name AS collection_name,
+        c.is_public AS is_public,
+        c.collector_id AS collector_id
+    FROM collection c
+    WHERE c.collector_id = collector_id;
+END$
+-- ----------------------------------
+CREATE PROCEDURE get_visible_collections_of_collector(
+    IN collector_id INT
+)
+BEGIN
+    SELECT DISTINCT
+        c.id AS collection_id,
+        c.collection_name AS collection_name,
+        c.is_public AS is_public,
+        c.collector_id AS collector_id
+    FROM collection c
+    LEFT JOIN shared_collection sc ON c.id = sc.collection_id
+    WHERE c.collector_id = collector_id OR c.is_public = TRUE;
+END$
+-- ----------------------------------
+CREATE PROCEDURE get_collection(
+    IN collection_id INT
+)
+BEGIN
+    SELECT
+        c.id AS collection_id,
+        c.collection_name AS collection_name,
+        c.is_public AS is_public,
+        c.collector_id AS collector_id,
+        co.username AS collector_username,
+        co.email AS collector_email
+    FROM collection c
+    JOIN collector co ON c.collector_id = co.id
+    WHERE c.id = collection_id;
+END$
+-- ----------------------------------
+CREATE PROCEDURE get_collectors_of_collection(
+    IN collection_id INT
+)
+BEGIN
+    SELECT
+        co.id AS collector_id,
+        co.username AS collector_username,
+        co.email AS collector_email
+    FROM shared_collection sc
+    JOIN collector co ON sc.collector_id = co.id
+    WHERE sc.collection_id = collection_id;
+END$
+-- ----------------------------------
+CREATE PROCEDURE get_collector(
+    IN collector_id INT
+)
+BEGIN
+    SELECT
+        co.id AS collector_id,
+        co.username AS collector_username,
+        co.email AS collector_email
+    FROM collector co
+    WHERE co.id = collector_id;
+END$
+-- ----------------------------------
+CREATE PROCEDURE get_disc(
+    IN disc_id INT
+)
+BEGIN
+    SELECT
+        d.id AS disc_id,
+        d.title AS disc_title,
+        d.barcode AS disc_barcode,
+        d.release_year AS disc_release_year,
+        d.number_of_copies AS disc_number_of_copies,
+        d.genre AS disc_genre,
+        d.disc_format AS disc_format,
+        d.disc_status AS disc_status,
+        a.stage_name AS artist_stage_name,
+        l.label_name AS label_name,
+        d.collection_id AS collection_id,
+        l.id AS label_id,
+        a.id AS artist_id
+    FROM disc d
+    JOIN artist a ON d.artist_id = a.id
+    JOIN label l ON d.label_id = l.id
+    WHERE d.id = disc_id;
+END$
+-- ----------------------------------
 
-### Esecuzione da sorgente
+CREATE PROCEDURE get_artist(
+    IN artist_id INT
+)
+BEGIN
+    SELECT
+        a.id AS artist_id,
+        a.stage_name AS artist_stage_name,
+        a.artist_name AS artist_name
+    FROM artist a
+    WHERE a.id = artist_id;
+END$
+-- ----------------------------------
+CREATE PROCEDURE get_images_of_disc(
+    IN disc_id INT
+)
+BEGIN
+    SELECT
+        i.id AS image_id,
+        i.image_path AS image_path,
+        i.image_format AS image_format
+    FROM image i
+    WHERE i.disc_id = disc_id;
+END$
+-- ----------------------------------
+CREATE PROCEDURE login_user(
+    IN username VARCHAR(100),
+    IN email VARCHAR(100)
+)
+BEGIN
+    SELECT
+        c.id AS collector_id,
+        c.username AS collector_username,
+        c.email AS collector_email
+    FROM collector c
+    WHERE c.username = username AND c.email = email;
+END$
+-- ----------------------------------
+CREATE PROCEDURE get_collector_by_mail(
+    IN email VARCHAR(100)
+)
+BEGIN
+    SELECT
+        c.id AS collector_id,
+        c.username AS collector_username,
+        c.email AS collector_email
+    FROM collector c
+    WHERE c.email = email;
+END$
+-- ----------------------------------
+CREATE PROCEDURE set_collector_in_collection(
+    IN collection_id INT,
+    IN collector_id INT,
+    IN is_part BOOLEAN
+)
+BEGIN
+    IF (is_part) THEN
+        INSERT IGNORE INTO shared_collection(collection_id, collector_id)
+        VALUES (collection_id, collector_id);
+    ELSE
+        DELETE FROM shared_collection
+        WHERE collection_id = collection_id AND collector_id = collector_id;
+    END IF;
+END$
+-- ----------------------------------
+CREATE PROCEDURE add_collector(
+    IN username VARCHAR(100),
+    IN email VARCHAR(100)
+)
+BEGIN
+    INSERT IGNORE INTO collector(username, email)
+    VALUES (username, email);
+END$
+-- ----------------------------------
+CREATE PROCEDURE get_track_contributors(
+    IN track_id INT
+)
+BEGIN
+    SELECT
 
-Il codice sorgente può essere scaricato su [questa repository github](https://github.com/Specy/uni-bd-collectors) incluso anche il sorgente markdown di questo documento, i diagrammi e gli script sql.
-Si assume una connessione mysql con le seguenti credenziali con permessi che consentono all'utente di creare e eliminare database, trigger, procedure, tabelle e funzioni:
+        tc.artist_id AS artist_id,
+        tc.contribution_type AS contribution_type,
+        a.stage_name AS artist_stage_name,
+        a.artist_name AS artist_name
+    FROM track_contribution tc
+    JOIN artist a ON tc.artist_id = a.id
+    WHERE tc.track_id = track_id;
+END$
+-- ----------------------------------
+CREATE PROCEDURE get_track(
+    IN track_id INT
+)
+BEGIN 
+    SELECT 
+        t.id AS track_id,
+        t.track_length AS track_length,
+        t.title AS track_title,
+        t.disc_id AS disc_id
+    FROM track t    
+    WHERE t.id = track_id;
+END$
 
-```ts
-export const DEFAULT_CONNECTION = {
-    host: "localhost",
-    port: 3306,
-    user: "root",
-    password: "root",
-} satisfies ConnectionOptions
-```
+-- ----------------------------------
+CREATE PROCEDURE get_genres()
+BEGIN
+    SELECT
+        g.genre_name AS genre_name
+    FROM disc_genre g;
+END$
+-- ----------------------------------
+CREATE PROCEDURE get_formats()
+BEGIN
+    SELECT
+        f.format_name AS format_name
+    FROM disc_format f;
+END$
+-- ----------------------------------
+CREATE PROCEDURE get_conditions()
+BEGIN
+    SELECT
+        c.condition_name AS condition_name
+    FROM condition_status c;
+END$
+-- ----------------------------------
+CREATE PROCEDURE get_image_types()
+BEGIN
+    SELECT
+        i.type_name AS image_type_name
+    FROM image_type i;
+END$
 
-può essere in caso modificata nel file `GUI/electron/src/db/db.ts`.
+-- ----------------------------------
+CREATE PROCEDURE get_artist_autocomplete(
+    IN search_text VARCHAR(100)
+)
+BEGIN
+    SELECT
+        a.stage_name AS artist_stage_name,
+        a.artist_name AS artist_name,
+        a.id AS artist_id
+    FROM artist a
+    WHERE a.stage_name LIKE CONCAT('%', search_text, '%') OR a.artist_name LIKE CONCAT('%', search_text, '%');
+END$
+-- ----------------------------------
+CREATE PROCEDURE get_label_autocomplete(
+    IN search_text VARCHAR(100)
+)
+BEGIN
+    SELECT
+        l.label_name AS label_name,
+        l.id AS label_id
+    FROM label l
+    WHERE l.label_name LIKE CONCAT('%', search_text, '%');
+END$
+-- ----------------------------------
+CREATE PROCEDURE create_label(
+    IN label_name VARCHAR(100)
+)
+BEGIN
+    INSERT IGNORE INTO label(label_name)
+    VALUES (label_name);
+END$
+-- ----------------------------------
+CREATE PROCEDURE create_artist(
+    IN stage_name VARCHAR(100),
+    IN artist_name VARCHAR(100)
+)
+BEGIN
+    INSERT IGNORE INTO artist(stage_name, artist_name)
+    VALUES (stage_name, artist_name);
+END$
+-- ----------------------------------
+CREATE PROCEDURE create_image(
+    IN image_path VARCHAR(200),
+    IN image_format VARCHAR(40),
+    IN disc_id INT
+)
+BEGIN
+    INSERT INTO image(image_path, image_format, disc_id)
+    VALUES (image_path, image_format, disc_id);
+END$
+-- ----------------------------------
+CREATE PROCEDURE get_artist_by_stage_name(
+    IN stage_name VARCHAR(100)
+)
+BEGIN
+    SELECT
+        a.id AS artist_id,
+        a.stage_name AS artist_stage_name,
+        a.artist_name AS artist_name
+    FROM artist a
+    WHERE a.stage_name = stage_name;
+END$
+-- ----------------------------------
+CREATE PROCEDURE remove_track(
+    IN track_id INT
+)
+BEGIN
+    DELETE FROM track
+    WHERE track.id = track_id;
+END$
+-- ----------------------------------
+CREATE PROCEDURE remove_disc(
+    IN disc_id INT
+)
+BEGIN
+    DELETE FROM disc
+    WHERE disc.id = disc_id;
+END$
 
-Non c'è bisogno di caricare il dump (che però è comunque presente nel file `submission/dump.sql`) del database manualmente, l'applicazione effettuerà da sola la creazione del database `collectors` con tutte le sue tabelle, procedure e funzioni, per poi popolarlo con i dati di esempio.
-Tutti gli script sql che verranno eseguiti possono essere trovati in `GUI/electron/src/db/sql-scripts/` e sono eseguiti all'interno del file `GUI/electron/src/db/collectors-db.ts` (cuore principale del progetto) dove si possono trovare anche tutte le funzioni di interfacciamento con il database e conversione dei risultati delle query in oggetti javascript.
+-- ----------------------------------
+CREATE PROCEDURE get_label(
+    IN label_id INT
+)
+BEGIN
+    SELECT
+        l.id AS label_id,
+        l.label_name AS label_name
+    FROM label l
+    WHERE l.id = label_id;
+END$
 
-Per eseguire l'applicazione è necessario aver installato [node.js](https://nodejs.org/it/download) e npm (preinstallato con node.js) e poi eseguire il seguente comando nella cartella `GUI`:
-
-```bash
-npm run install-and-run
-```
-
-che installerà tutte le dipendenze necessarie, compilerà il codice sorgente (in preview) e avvierà l'applicazione.
+DELIMITER ;
