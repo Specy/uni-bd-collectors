@@ -31,21 +31,21 @@ realistico, e ne verrà tenuto conto durante la valutazione finale.
 Di seguito sono riportate le entità scoperte a seguito dell'analisi della traccia. 
 Il compito del progetto è quello di permettere a **Collezionisti** di tenere traccia delle proprie collezioni di dischi, che possono essere anche condivise con altri. Ogni collezione contiene una lista di dischi, dove ogni disco posseduto da un collezionista specifica il proprio formato, lo stato di conservazione e il numero di copie che possiede. Ogni disco contiene varie informazioni, immagini e tracce.
 
-- **Collezionista**: Un utente identificato tramite il proprio nickname e una mail
+- **Collezionista**: Un utente identificato tramite il proprio nickname e una mail, possiede varie collezioni e fa parte di collezioni di altri collezionisti
 - **Collezione**: Una lista di dischi appartenenti a questa collezione, incluso il nome della collezione e se è pubblica o meno. La collezione può essere condivisa con altri collezionisti.
-- **Disco**: Contiene i dettagli del disco come il nome, gli autori, il titolo, l'anno di uscita, l'etichetta, il genere, lo stato di conservazione, il formato, il barcode se disponibile, una lista di tracce, e delle immagini
-- **Immagine**: L'immagine del disco e la tipologia di immagine
+- **Disco**: Contiene i dettagli del disco come il nome, l'autore, il titolo, l'anno di uscita, l'etichetta, il genere, lo stato di conservazione, il formato, il barcode se disponibile, una lista di tracce, e delle immagini
+- **Immagine**: L'immagine di un disco e la sua tipologia
 - **Traccia**: Una canzone, contiene un titolo, durata, e opzionalmente informazioni sul contributo da parte di artisti.
-- **Artista**: L'artista che produce una canzone, con il proprio nome d'arte
+- **Artista**: L'artista che produce un disco o collabora in una canzone, con il proprio nome d'arte
 
 # Implementazioni analizzate
 
-Sono state analizzate due implementazioni diverse, una più restrittiva e una più permissiva
+Sono state analizzate due implementazioni diverse, una più restrittiva e una più permissiva:
 
-L'implementazione più restrittiva permette ai collezionisti di creare un database univoco che poi verrà condiviso da tutti, un disco (e tutti i suoi attributi strutturati) specifico è quindi rappresentato in maniera univoca, e ogni possedimento da parte di un collezionista ne rappresenta solo il formato e lo stato del disco. 
+L'implementazione più **restrittiva** permette ai collezionisti di creare un database univoco e condiviso da tutti, un disco (e tutti i suoi attributi strutturati) specifico è quindi rappresentato in maniera univoca, e ogni possedimento da parte di un collezionista ne rappresenta solo il formato e lo stato del disco. 
 Ha il pro di rimuovere eventuale ridondanza nel database, ma ha il contro di non poter essere modificabile da parte dei collezionisti, infatti saranno obbligati ad usare le informazioni sul disco già presente, o crearne uno nuovo con simili informazioni, quindi annullando i vantaggi precedenti.
 
-L'implementazione più permissiva (quella scelta) permette la ridondanza dei dati dei dischi, tracce, immagini, etc..., a favore di un possesso di dati da parte dei collezionisti, infatti, essendo tutti i dischi potenzialmente diversi da quelli già presenti, permette ad ogni collezionista di modificare a piacimento il proprio disco, e con funzionalità da parte dell'interfaccia grafica, si facilita l'inserimento di dischi già esistenti, "clonandoli". 
+L'implementazione più **permissiva** (quella scelta) permette la ridondanza dei dati dei dischi, tracce, immagini, etc..., a favore di un possesso di dati da parte dei collezionisti, infatti, essendo tutti i dischi potenzialmente diversi da quelli già presenti, permette ad ogni collezionista di modificare a piacimento il proprio disco, e con funzionalità da parte dell'interfaccia grafica, si facilita l'inserimento di dischi già esistenti, "clonandoli". 
 
 ## Progettazione concettuale
 
@@ -55,30 +55,29 @@ L'implementazione più permissiva (quella scelta) permette la ridondanza dei dat
 
 Tutti gli attributi sono NOT NULL ad eccezione di "barcode" che può esserlo in caso che non sia conosciuto. In oltre nelle entità:
 - **Collezionista**: Sia email che nickname sono unici 
-- **Artista**: Il nome d'arte è unico
 - **Collezione**: Il nome di una collezione è unico sul singolo collezionista e una collezione non può essere condivisa con se stessi
-
 
 ## Progettazione logica
 
 ![[logical-er.drawio.svg]]
-- Sono state create delle nuove entità a partire dagli attributi "genere", "stato", "ruolo", "tipologia", "formato", per rendere più semplice l'aggiunta di nuovi e la eventuale modifica del nome di essi.
+
+- Sono state create delle nuove entità a partire dagli attributi **genere**, **stato**, **ruolo**, **tipologia**, **formato**, per rendere più semplice l'aggiunta di nuovi, la eventuale modifica del nome e l'aggiunta di più informazioni se necessario.
 - Il contributo da parte di un artista è stato generalizzato in una nuova entità "Contributo brano" che specifica il contributo di un artista tramite un certo ruolo (tipo cantante, scrittore, chitarrista etc...)
 - La visibilità di una collezione è stata modificata per un valore booleano "isPubblico"
-- Anche se abbastanza grande, non si è scelto la suddivisione della entità "Disco" dato che tutte le informazioni del disco verranno sempre usate nelle query
+- Anche se abbastanza grande, non si è scelto la suddivisione della entità "Disco" dato che tutte le informazioni del disco verranno sempre usate nelle query.
 
 
 ### Traduzione del modello ER nel modello relazionale
 
 - **Collezionista**(<u>ID</u>,  username, email) 
-- **Collezione**(<u>ID</u>,nome, _ID_collezionista_, is_pubblico) 
-- **CollezioneCondivisa**(<u style="font-style: italic">ID_Collezione</u>, __<u style="font-style: italic">ID_Collezionista</u>)
+- **Collezione**(<u>ID</u>,nome, _IDCollezionista_, isPubblico) 
+- **CollezioneCondivisa**(<u style="font-style: italic">IDCollezione</u>, <u style="font-style: italic">IDCollezionista</u>)
 - **Etichetta**(<u>ID</u>, nome) 
-- **Traccia**(<u>ID</u>, _ID_Disco_,  durata, titolo) 
-- **Artista**(<u>ID</u>, nome_arte, nome) 
-- **Immagine**(<u>ID</u>, _ID_Brano_, file, _tipo_immagine_) 
-- **ContributoBrano**(<u style="font-style: italic">ID_Brano</u>, <u style="font-style: italic">tipo_contributo</u>, <u style="font-style: italic">artista</u>) 
-- **Disco**(<u>ID</u>, _ID_Collezione_, titolo, barcode, anno_di_uscita, numero_copie, _genere_, _formato_, _ID_etichetta_,  _statoDisco_, _ID_artista_)
+- **Traccia**(<u>ID</u>, _IDDisco_,  durata, titolo) 
+- **Artista**(<u>ID</u>, nomeArte, nome) 
+- **Immagine**(<u>ID</u>, _IDBrano_, file, _tipoImmagine_) 
+- **ContributoBrano**(<u style="font-style: italic">IDBrano</u>, <u style="font-style: italic">tipoContributo</u>, <u style="font-style: italic">artista</u>) 
+- **Disco**(<u>ID</u>, _IDCollezione_, titolo, barcode, annoDiUscita, numeroCopie, _genere_, _formato_, _IDEtichetta_,  _statoDisco_, _IDArtista_)
 - **Formato**(<u>nome</u>) 
 - **Genere**(<u>nome</u>) 
 - **TipologiaImmagine**(<u>nome</u>) 
@@ -124,6 +123,7 @@ CREATE TABLE IF NOT EXISTS collection(
     collection_name VARCHAR(100) NOT NULL, #collectin name is unique for the owner
     collector_id INT NOT NULL,
     is_public BOOLEAN NOT NULL,
+    
     FOREIGN KEY (collector_id) REFERENCES collector(id)
 		ON DELETE CASCADE
         ON UPDATE CASCADE
@@ -140,6 +140,7 @@ CREATE TABLE IF NOT EXISTS disc(
     collection_id INT NOT NULL, 
     disc_status varchar(40) NOT NULL,
     artist_id INT NOT NULL,
+    
     FOREIGN KEY (artist_id) REFERENCES artist(id)
 		ON UPDATE CASCADE
         ON DELETE RESTRICT,
@@ -164,6 +165,7 @@ CREATE TABLE IF NOT EXISTS image(
     image_path VARCHAR(200) NOT NULL,
     image_format VARCHAR(40),
     disc_id INT NOT NULL,
+    
     FOREIGN KEY (disc_id) REFERENCES disc(id)
         ON UPDATE CASCADE
         ON DELETE CASCADE,
@@ -174,6 +176,7 @@ CREATE TABLE IF NOT EXISTS image(
 CREATE TABLE IF NOT EXISTS shared_collection(
 	collection_id INT NOT NULL,
     collector_id INT NOT NULL,
+    
     FOREIGN KEY (collection_id) REFERENCES collection(id)
 		ON UPDATE CASCADE
         ON DELETE CASCADE,
@@ -187,6 +190,7 @@ CREATE TABLE IF NOT EXISTS track(
     track_length INT NOT NULL,
     title VARCHAR(100) NOT NULL,
 	disc_id INT NOT NULL,
+	
     FOREIGN KEY (disc_id) REFERENCES disc(id)
 		ON UPDATE CASCADE
         ON DELETE CASCADE
@@ -226,6 +230,7 @@ INSERT INTO artist_role (role_name) VALUES
     ('Keyboardist'),
     ('Producer'),
     ('Writer');
+    
 INSERT INTO image_type (type_name) VALUES
     ('Front'),
     ('Back'),
@@ -251,6 +256,7 @@ INSERT INTO disc_format (format_name) VALUES
     ('CD'),
     ('Cassette'),
     ('Digital');
+    
 INSERT INTO artist (stage_name, artist_name) VALUES
     ('Freddie Mercury', 'Freddie Mercury'),
     ('John Lennon', 'John Lennon'),
@@ -280,7 +286,6 @@ INSERT INTO collection (collection_name, collector_id, is_public) VALUES
     ('Classic Rock', 2, 1),
     ('Madonna', 2, 0);
 
-
 INSERT INTO shared_collection (collection_id, collector_id) VALUES
     (1, 2),
     (2, 1),
@@ -304,9 +309,6 @@ INSERT INTO image (image_path, image_format, disc_id) VALUES
     ('https://picsum.photos/500/500', 'Back', 4),    
     ('https://picsum.photos/500/500', 'Front', 4),
     ('https://picsum.photos/500/500', 'Back', 5);
-
-
-
 
 INSERT INTO track (track_length, title, disc_id) VALUES
     (355, 'Bohemian Rhapsody', 1),
@@ -341,7 +343,6 @@ INSERT INTO track_contribution (track_id, artist_id, contribution_type) VALUES
     (10, 5, 'Lead Singer'),
     (11, 6, 'Lead Singer'),
     (12, 6, 'Lead Singer');
-
 ```
 
 ### Implementazione dei vincoli
@@ -425,7 +426,7 @@ BEGIN
     VALUES (title, barcode, release_year, number_of_copies, genre, disc_format, label_id, collection_id, disc_status, artist_id);
     SELECT LAST_INSERT_ID() AS disc_id;
 END$
-
+-- ----------------------------------------------
 CREATE PROCEDURE create_track(
     IN track_length INT,
     IN title VARCHAR(100),
@@ -451,7 +452,7 @@ BEGIN
     SET c.is_public = is_public
     WHERE c.id = collection_id;
 END$
-
+-- ----------------------------------------------
 CREATE PROCEDURE add_contributor_to_collection(
     IN collection_id INT,
     IN collector_username VARCHAR(100)
@@ -657,8 +658,7 @@ BEGIN
     );
     RETURN artist_id;
 END$
-
-
+-- ----------------------------------------------
 CREATE FUNCTION count_tracks_of_author_in_public_collections(
     artist_stage_name VARCHAR(100)
 )
@@ -741,7 +741,7 @@ BEGIN
     RIGHT JOIN collector ON collector.id = c.collector_id
     GROUP BY collector.username;
 END$
-
+-- ----------------------------------------------
 CREATE PROCEDURE aggregate_number_of_discs_per_genre()
 BEGIN
     SELECT
